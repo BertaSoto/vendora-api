@@ -1,0 +1,15 @@
+{
+  "name": "@vendora/supabase-client",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo lint-supabase-client",
+    "test": "echo test-supabase-client"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0"
+  }
+}

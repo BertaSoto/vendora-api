@@ -1,0 +1,15 @@
+{
+  "name": "@vendora/shared-types",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo lint-shared-types",
+    "test": "echo test-shared-types"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0"
+  }
+}
