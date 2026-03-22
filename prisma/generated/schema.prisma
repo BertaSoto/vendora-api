@@ -20,14 +20,14 @@ enum StoreStatus {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
+  id        String   @id @default(uuid())
+  email     String   @unique
   fullName  String?
-  role      UserRole  @default(MERCHANT)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  role      UserRole @default(MERCHANT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  stores    Store[]
+  stores Store[]
 }
 
 model Store {
@@ -40,5 +40,5 @@ model Store {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  merchant    User        @relation(fields: [merchantId], references: [id])
+  merchant User @relation(fields: [merchantId], references: [id])
 }
