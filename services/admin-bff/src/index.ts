@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import dashboardRoutes from './routes/dashboard.routes'
+import dashboardRoutes from './routes/dashboard.routes.js'
 
 const app = new Hono()
 
