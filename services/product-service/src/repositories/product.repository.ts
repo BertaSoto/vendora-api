@@ -1,4 +1,4 @@
-import type { Product } from '../types'
+import type { Product } from '../types/index.js'
 
 export class ProductRepository {
   private products: Map<string, Product> = new Map()
