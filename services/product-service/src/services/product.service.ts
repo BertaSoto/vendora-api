@@ -1,6 +1,6 @@
-import { ProductRepository } from '../repositories/product.repository'
-import type { Product } from '../types'
-import type { CreateProductDto, UpdateStockDto, ProductResponseDto } from '../dtos/product.dto'
+import { ProductRepository } from '../repositories/product.repository.js'
+import type { Product } from '../types/index.js'
+import type { CreateProductDto, UpdateStockDto, ProductResponseDto } from '../dtos/product.dto.js'
 
 export class ProductService {
   constructor(private readonly repository: ProductRepository) {}
