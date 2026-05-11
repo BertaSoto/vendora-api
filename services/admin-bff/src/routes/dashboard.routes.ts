@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { dashboardService } from '../services/dashboard.service'
+import { dashboardService } from '../services/dashboard.service.js'
 
 const dashboardRoutes = new Hono()
 
