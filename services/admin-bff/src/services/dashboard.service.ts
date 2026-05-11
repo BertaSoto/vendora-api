@@ -1,4 +1,4 @@
-import type { DashboardResponse, Store } from '../types'
+import type { DashboardResponse, Store } from '../types/index.js'
 
 interface ProductSummary {
   productsCount: number
