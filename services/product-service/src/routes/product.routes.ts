@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
-import { productService } from '../services/product.service'
-import type { CreateProductDto, UpdateStockDto } from '../dtos/product.dto'
+import { productService } from '../services/product.service.js'
+import type { CreateProductDto, UpdateStockDto } from '../dtos/product.dto.js'
 
 const productRoutes = new Hono()
 

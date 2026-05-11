@@ -10,4 +10,4 @@ export interface UpdateStockDto {
   stock: number
 }
 
-export type { Product as ProductResponseDto } from '../types'
+export type { Product as ProductResponseDto } from '../types/index.js'
