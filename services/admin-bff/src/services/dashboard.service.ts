@@ -20,14 +20,14 @@ export class DashboardService {
 
   private async fetchProductSummary(_storeId: string): Promise<ProductSummary> {
     return {
-      productsCount: 12,
-      lowStockProducts: 3,
+      productsCount: 6,
+      lowStockProducts: 2, // prod-003 (stock 3) y prod-005 (stock 2)
     }
   }
 
   private async fetchOrderSummary(_storeId: string): Promise<OrderSummary> {
     return {
-      pendingOrders: 2,
+      pendingOrders: 2, // order-001 y order-004
     }
   }
 

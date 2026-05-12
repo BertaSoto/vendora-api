@@ -1,21 +1,29 @@
+# Node
+node_modules
+dist
+
+# Build & Cache
+.turbo
+prisma/generated
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE & Tools
+.vscode/
+.idea/
+*.swp
+*.swo
+
 # Claude Code
 .claude/
 
-# Vite env types
-vite-env.d.ts
+# OS
+.DS_Store
+Thumbs.db
 
-# Node
-node_modules/
-dist/
-
-# IDE
-.vscode/
-.idea/
-
-# Env
-.env
-.env.local
-
-#turbo
-prisma/generated
-.turbo
+# Logs
+*.log
+npm-debug.log*
