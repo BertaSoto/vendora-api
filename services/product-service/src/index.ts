@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import productRoutes from './routes/product.routes'
+import productRoutes from './routes/product.routes.js'
 
 const app = new Hono()
 
