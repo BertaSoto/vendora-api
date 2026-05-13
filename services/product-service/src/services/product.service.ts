@@ -1,52 +1,112 @@
-import { ProductRepository } from '../repositories/product.repository.js'
-import type { Product } from '../types/index.js'
-import type { CreateProductDto, UpdateStockDto, ProductResponseDto } from '../dtos/product.dto.js'
+import { supabase } from '../lib/supabase.js'
+import type { Product, ProductRow } from '../types/index.js'
+import { rowToProduct } from '../types/index.js'
+import type { CreateProductDto, UpdateProductDto, ProductResponseDto } from '../dtos/product.dto.js'
 
 export class ProductService {
-  constructor(private readonly repository: ProductRepository) {}
-
   async create(dto: CreateProductDto): Promise<ProductResponseDto> {
     this.validateCreateDto(dto)
 
-    const product: Product = {
-      id: crypto.randomUUID(),
-      storeId: dto.storeId,
-      name: dto.name,
-      description: dto.description ?? '',
-      price: dto.price,
-      stock: dto.stock,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+    const { data, error } = await supabase
+      .from('products')
+      .insert({
+        store_id: dto.storeId,
+        name: dto.name,
+        description: dto.description,
+        price: dto.price,
+        stock: dto.stock,
+      })
+      .select()
+      .single<ProductRow>()
+
+    if (error) {
+      if (error.code === '23505') {
+        throw new Error(`A product with the name "${dto.name}" already exists in this store.`)
+      }
+      throw new Error(error.message)
     }
 
-    return this.repository.create(product)
-  }
-
-  async findAllByStore(storeId: string): Promise<ProductResponseDto[]> {
-    if (!storeId) throw new Error('storeId is required')
-    return this.repository.findAllByStore(storeId)
+    return rowToProduct(data)
   }
 
   async findById(id: string): Promise<ProductResponseDto | null> {
     if (!id) throw new Error('id is required')
-    return this.repository.findById(id)
+
+    const { data, error } = await supabase
+      .from('products')
+      .select()
+      .eq('id', id)
+      .single<ProductRow>()
+
+    if (error) return null
+    return rowToProduct(data)
   }
 
-  async updateStock(id: string, dto: UpdateStockDto): Promise<ProductResponseDto | null> {
-    if (typeof dto.stock !== 'number' || dto.stock < 0) {
-      throw new Error('stock must be a non-negative integer')
+  async findAllByStore(storeId: string): Promise<ProductResponseDto[]> {
+    if (!storeId) throw new Error('storeId is required')
+
+    const { data, error } = await supabase
+      .from('products')
+      .select()
+      .eq('store_id', storeId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw new Error(error.message)
+    return (data as ProductRow[]).map(rowToProduct)
+  }
+
+  async update(id: string, dto: UpdateProductDto): Promise<ProductResponseDto | null> {
+    if (!id) throw new Error('id is required')
+
+    const updates: Record<string, unknown> = {}
+    if (dto.name !== undefined) updates.name = dto.name
+    if (dto.description !== undefined) updates.description = dto.description
+    if (dto.price !== undefined) {
+      if (typeof dto.price !== 'number' || dto.price < 0) {
+        throw new Error('price must be a non-negative number')
+      }
+      updates.price = dto.price
     }
-    return this.repository.update(id, { stock: dto.stock })
+    if (dto.stock !== undefined) {
+      if (typeof dto.stock !== 'number' || dto.stock < 0) {
+        throw new Error('stock must be a non-negative integer')
+      }
+      updates.stock = dto.stock
+    }
+
+    if (Object.keys(updates).length === 0) {
+      throw new Error('at least one field must be provided to update')
+    }
+
+    const { data, error } = await supabase
+      .from('products')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single<ProductRow>()
+
+    if (error) return null
+    return rowToProduct(data)
   }
 
   async delete(id: string): Promise<boolean> {
     if (!id) throw new Error('id is required')
-    return this.repository.delete(id)
+
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw new Error(error.message)
+    return true
   }
 
   private validateCreateDto(dto: CreateProductDto): void {
-    if (!dto.storeId || !dto.name) {
-      throw new Error('storeId and name are required')
+    if (!dto.storeId) {
+      throw new Error('storeId is required')
+    }
+    if (!dto.name || dto.name.trim().length === 0) {
+      throw new Error('name is required')
     }
     if (typeof dto.price !== 'number' || dto.price < 0) {
       throw new Error('price must be a non-negative number')
@@ -57,5 +117,4 @@ export class ProductService {
   }
 }
 
-const repository = new ProductRepository()
-export const productService = new ProductService(repository)
+export const productService = new ProductService()
