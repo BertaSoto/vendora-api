@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import orderRoutes from './routes/order.routes'
+import orderRoutes from './routes/order.routes.js'
 
 const app = new Hono()
 
