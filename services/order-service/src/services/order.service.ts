@@ -1,6 +1,6 @@
-import { OrderRepository } from '../repositories/order.repository'
-import type { Order } from '../types'
-import type { CreateOrderDto, OrderResponseDto } from '../dtos/order.dto'
+import { OrderRepository } from '../repositories/order.repository.js'
+import type { Order } from '../types/index.js'
+import type { CreateOrderDto, OrderResponseDto } from '../dtos/order.dto.js'
 
 export class OrderService {
   constructor(private readonly repository: OrderRepository) {}
