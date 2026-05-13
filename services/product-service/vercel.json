@@ -1,4 +1,5 @@
 {
+  "buildCommand": "pnpm --filter product-service build",
   "rewrites": [
     {
       "source": "/(.*)",

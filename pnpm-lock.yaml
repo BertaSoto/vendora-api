@@ -149,6 +149,9 @@ importers:
 
   services/product-service:
     dependencies:
+      '@supabase/supabase-js':
+        specifier: ^2.105.4
+        version: 2.105.4
       hono:
         specifier: ^4.12.8
         version: 4.12.18
