@@ -1,4 +1,5 @@
-import { PrismaClient } from '../prisma/generated/client'
+import 'dotenv/config'
+import { PrismaClient } from '../../../prisma/generated/client.js'
 import { PrismaPg } from '@prisma/adapter-pg'
 
 const adapter = new PrismaPg({ connectionString: process.env.DIRECT_URL })

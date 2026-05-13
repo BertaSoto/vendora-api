@@ -1,0 +1,21 @@
+{
+  "name": "@vendora/database",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo lint-database",
+    "test": "echo test-database"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.5.0",
+    "@prisma/client": "^7.5.0",
+    "dotenv": "^17.3.1",
+    "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0"
+  }
+}
