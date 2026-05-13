@@ -11,4 +11,4 @@ export interface CreateOrderDto {
   items: CreateOrderItemDto[]
 }
 
-export type { Order as OrderResponseDto } from '../types'
+export type { Order as OrderResponseDto } from '../types/index.js'
