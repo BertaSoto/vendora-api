@@ -10,6 +10,7 @@
     "test": "echo test-store-service"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.105.4",
     "hono": "^4.12.8"
   },
   "devDependencies": {

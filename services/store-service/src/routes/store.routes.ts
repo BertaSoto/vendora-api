@@ -1,0 +1,80 @@
+import { Hono } from 'hono'
+
+import { storeService } from '../services/store.service.js'
+import type { CreateStoreDto, UpdateStoreDto } from '../dtos/store.dto.js'
+
+const storeRoutes = new Hono()
+
+storeRoutes.post('/', async (c) => {
+  try {
+    const body = await c.req.json<CreateStoreDto>()
+    const store = await storeService.create(body)
+    return c.json(store, 201)
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400)
+  }
+})
+
+storeRoutes.get('/', async (c) => {
+  try {
+    const merchantId = c.req.query('merchantId')
+
+    if (merchantId) {
+      const stores = await storeService.findAllByMerchant(merchantId)
+      return c.json(stores)
+    }
+
+    const stores = await storeService.findAll()
+    return c.json(stores)
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400)
+  }
+})
+
+storeRoutes.get('/:idOrSlug', async (c) => {
+  const idOrSlug = c.req.param('idOrSlug')
+
+  try {
+    const store =
+      (await storeService.findById(idOrSlug)) ??
+      (await storeService.findBySlug(idOrSlug))
+
+    if (!store) {
+      return c.json({ error: 'Store not found' }, 404)
+    }
+
+    return c.json(store)
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400)
+  }
+})
+
+storeRoutes.patch('/:id', async (c) => {
+  const id = c.req.param('id')
+
+  try {
+    const body = await c.req.json<UpdateStoreDto>()
+    const store = await storeService.update(id, body)
+
+    if (!store) {
+      return c.json({ error: 'Store not found' }, 404)
+    }
+
+    return c.json(store)
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400)
+  }
+})
+
+storeRoutes.delete('/:id', async (c) => {
+  const id = c.req.param('id')
+
+  try {
+    await storeService.delete(id)
+    return c.json({ message: 'Store deleted successfully' })
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400)
+  }
+})
+
+export default storeRoutes
