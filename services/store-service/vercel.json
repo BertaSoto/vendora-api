@@ -1,0 +1,9 @@
+{
+ "buildCommand": "pnpm --filter store-service build",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api"
+    }
+  ]
+}
