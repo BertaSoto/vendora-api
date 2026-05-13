@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
+
 import { productService } from '../services/product.service.js'
-import type { CreateProductDto, UpdateStockDto } from '../dtos/product.dto.js'
+import type { CreateProductDto, UpdateProductDto } from '../dtos/product.dto.js'
 
 const productRoutes = new Hono()
 
@@ -15,32 +16,44 @@ productRoutes.post('/', async (c) => {
 })
 
 productRoutes.get('/', async (c) => {
-  const storeId = c.req.query('storeId')
-  if (!storeId) {
-    return c.json({ error: 'storeId query parameter is required' }, 400)
+  try {
+    const storeId = c.req.query('storeId')
+    if (!storeId) {
+      return c.json({ error: 'storeId query parameter is required' }, 400)
+    }
+    const products = await productService.findAllByStore(storeId)
+    return c.json(products)
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400)
   }
-  const products = await productService.findAllByStore(storeId)
-  return c.json(products)
 })
 
 productRoutes.get('/:id', async (c) => {
   const id = c.req.param('id')
-  const product = await productService.findById(id)
-  if (!product) {
-    return c.json({ error: 'Product not found' }, 404)
-  }
-  return c.json(product)
-})
 
-productRoutes.put('/:id/stock', async (c) => {
-  const id = c.req.param('id')
   try {
-    const body = await c.req.json<UpdateStockDto>()
-    const updated = await productService.updateStock(id, body)
-    if (!updated) {
+    const product = await productService.findById(id)
+    if (!product) {
       return c.json({ error: 'Product not found' }, 404)
     }
-    return c.json(updated)
+    return c.json(product)
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400)
+  }
+})
+
+productRoutes.patch('/:id', async (c) => {
+  const id = c.req.param('id')
+
+  try {
+    const body = await c.req.json<UpdateProductDto>()
+    const product = await productService.update(id, body)
+
+    if (!product) {
+      return c.json({ error: 'Product not found' }, 404)
+    }
+
+    return c.json(product)
   } catch (err) {
     return c.json({ error: (err as Error).message }, 400)
   }
@@ -48,11 +61,16 @@ productRoutes.put('/:id/stock', async (c) => {
 
 productRoutes.delete('/:id', async (c) => {
   const id = c.req.param('id')
-  const deleted = await productService.delete(id)
-  if (!deleted) {
-    return c.json({ error: 'Product not found' }, 404)
+
+  try {
+    const deleted = await productService.delete(id)
+    if (!deleted) {
+      return c.json({ error: 'Product not found' }, 404)
+    }
+    return c.json({ message: 'Product deleted successfully' })
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400)
   }
-  return c.body(null, 204)
 })
 
 export default productRoutes
