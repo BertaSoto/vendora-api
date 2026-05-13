@@ -1,0 +1,9 @@
+{
+  "buildCommand": "pnpm --filter auth-service build",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api"
+    }
+  ]
+}
