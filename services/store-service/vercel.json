@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm run build --filter store-service",
+ "buildCommand": "pnpm --filter store-service build",
   "rewrites": [
     {
       "source": "/(.*)",
