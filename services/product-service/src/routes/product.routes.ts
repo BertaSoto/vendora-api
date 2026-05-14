@@ -1,9 +1,19 @@
 import { Hono } from 'hono'
 
 import { productService } from '../services/product.service.js'
+import { validateJWT } from '@vendora/auth-middleware'
 import type { CreateProductDto, UpdateProductDto } from '../dtos/product.dto.js'
 
 const productRoutes = new Hono()
+
+productRoutes.get('/me', validateJWT(), async (c) => {
+  const user = c.get('user')
+  return c.json({
+    success: true,
+    message: 'Usuario autenticado',
+    data: { user },
+  })
+})
 
 productRoutes.post('/', async (c) => {
   try {

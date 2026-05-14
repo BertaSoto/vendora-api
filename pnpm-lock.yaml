@@ -60,6 +60,9 @@ importers:
       hono:
         specifier: ^4.6.0
         version: 4.12.18
+      jose:
+        specifier: ^5.10.0
+        version: 5.10.0
     devDependencies:
       typescript:
         specifier: ^5.8.0
@@ -155,6 +158,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.105.4
         version: 2.105.4
+      '@vendora/auth-middleware':
+        specifier: workspace:*
+        version: link:../../packages/auth-middleware
       hono:
         specifier: ^4.12.8
         version: 4.12.18
@@ -967,6 +973,9 @@ packages:
   jiti@2.7.0:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
+
+  jose@5.10.0:
+    resolution: {integrity: sha512-s+3Al/p9g32Iq+oqXxkW//7jk2Vig6FF1CFqzVXoTUXt2qz89YWbL+OwS17NFYEvxC35n0FKeGO2LGYSxeM2Gg==}
 
   json-schema-traverse@1.0.0:
     resolution: {integrity: sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==}
@@ -1903,6 +1912,8 @@ snapshots:
   isexe@2.0.0: {}
 
   jiti@2.7.0: {}
+
+  jose@5.10.0: {}
 
   json-schema-traverse@1.0.0: {}
 
