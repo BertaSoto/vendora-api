@@ -15,7 +15,7 @@ productRoutes.get('/me', validateJWT(), async (c) => {
   })
 })
 
-productRoutes.post('/', async (c) => {
+productRoutes.post('/', validateJWT(), async (c) => {
   try {
     const body = await c.req.json<CreateProductDto>()
     const product = await productService.create(body)
@@ -39,7 +39,7 @@ productRoutes.get('/', async (c) => {
 })
 
 productRoutes.get('/:id', async (c) => {
-  const id = c.req.param('id')
+  const id = c.req.param('id')!
 
   try {
     const product = await productService.findById(id)
@@ -52,8 +52,8 @@ productRoutes.get('/:id', async (c) => {
   }
 })
 
-productRoutes.patch('/:id', async (c) => {
-  const id = c.req.param('id')
+productRoutes.patch('/:id', validateJWT(), async (c) => {
+  const id = c.req.param('id')!
 
   try {
     const body = await c.req.json<UpdateProductDto>()
@@ -69,8 +69,8 @@ productRoutes.patch('/:id', async (c) => {
   }
 })
 
-productRoutes.delete('/:id', async (c) => {
-  const id = c.req.param('id')
+productRoutes.delete('/:id', validateJWT(), async (c) => {
+  const id = c.req.param('id')!
 
   try {
     const deleted = await productService.delete(id)
