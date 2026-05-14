@@ -10,7 +10,8 @@
     "test": "echo test-auth-middleware"
   },
   "dependencies": {
-    "hono": "^4.6.0"
+    "hono": "^4.6.0",
+    "jose": "^5.10.0"
   },
   "devDependencies": {
     "typescript": "^5.8.0"
