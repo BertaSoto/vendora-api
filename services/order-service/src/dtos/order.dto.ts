@@ -1,14 +1,14 @@
-export interface CreateOrderItemDto {
-  productId: string
-  productName: string
-  quantity: number
-  unitPrice: number
-}
+import type { OrderStatus } from '../types/index.js'
 
 export interface CreateOrderDto {
+  userId: string
   storeId: string
-  customerName: string
-  items: CreateOrderItemDto[]
+  productId: string
+  quantity: number
+}
+
+export interface UpdateOrderDto {
+  status?: OrderStatus
 }
 
 export type { Order as OrderResponseDto } from '../types/index.js'
