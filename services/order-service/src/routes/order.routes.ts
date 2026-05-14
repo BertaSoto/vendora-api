@@ -1,14 +1,17 @@
 import { Hono } from 'hono'
 
 import { orderService } from '../services/order.service.js'
+import { validateJWT } from '@vendora/auth-middleware'
 import type { CreateOrderDto, UpdateOrderDto } from '../dtos/order.dto.js'
 
 const orderRoutes = new Hono()
 
-orderRoutes.post('/', async (c) => {
+orderRoutes.post('/', validateJWT(), async (c) => {
   try {
-    const body = await c.req.json<CreateOrderDto>()
-    const order = await orderService.create(body)
+    const { storeId, productId, quantity } = await c.req.json<Omit<CreateOrderDto, 'userId'> & { userId?: string }>()
+    const user = c.get('user')
+    const dto: CreateOrderDto = { userId: user.id, storeId, productId, quantity }
+    const order = await orderService.create(dto)
     return c.json(order, 201)
   } catch (err) {
     return c.json({ error: (err as Error).message }, 400)
@@ -38,7 +41,7 @@ orderRoutes.get('/', async (c) => {
 })
 
 orderRoutes.get('/:id', async (c) => {
-  const id = c.req.param('id')
+  const id = c.req.param('id')!
 
   try {
     const order = await orderService.findById(id)
@@ -51,8 +54,8 @@ orderRoutes.get('/:id', async (c) => {
   }
 })
 
-orderRoutes.patch('/:id', async (c) => {
-  const id = c.req.param('id')
+orderRoutes.patch('/:id', validateJWT(), async (c) => {
+  const id = c.req.param('id')!
 
   try {
     const body = await c.req.json<UpdateOrderDto>()
@@ -68,8 +71,8 @@ orderRoutes.patch('/:id', async (c) => {
   }
 })
 
-orderRoutes.delete('/:id', async (c) => {
-  const id = c.req.param('id')
+orderRoutes.delete('/:id', validateJWT(), async (c) => {
+  const id = c.req.param('id')!
 
   try {
     await orderService.delete(id)
