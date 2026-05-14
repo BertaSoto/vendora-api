@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm --filter product-service build",
+  "buildCommand": "pnpm turbo run build --filter=product-service",
   "rewrites": [
     {
       "source": "/(.*)",
