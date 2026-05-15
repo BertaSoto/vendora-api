@@ -1,22 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { storesApi } from '../../../src/api/stores'
 import type { Store } from '../../../src/types'
+
+const MOCK_STORES: Store[] = [
+  { id: 'store-1', name: 'Joyas Maria', status: 'active' },
+  { id: 'store-2', name: 'Tech Store', status: 'active' },
+  { id: 'store-3', name: 'Fashion Plus', status: 'active' },
+]
 
 export default function TiendasPage() {
   const router = useRouter()
-  const [stores, setStores] = useState<Store[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    storesApi.list()
-      .then(setStores)
-      .catch(err => setError(err instanceof Error ? err.message : 'Error al cargar tiendas'))
-      .finally(() => setIsLoading(false))
-  }, [])
+  const [stores] = useState<Store[]>(MOCK_STORES)
 
   const statusLabel: Record<Store['status'], string> = {
     active: 'Activa',
@@ -37,15 +33,11 @@ export default function TiendasPage() {
         <p style={styles.subtext}>Selecciona una tienda para ver sus productos y órdenes</p>
       </div>
 
-      {isLoading && <p style={styles.state}>Cargando tiendas…</p>}
-
-      {error && <p style={{ ...styles.state, color: 'var(--color-danger)' }}>{error}</p>}
-
-      {!isLoading && !error && stores.length === 0 && (
+      {stores.length === 0 && (
         <p style={styles.state}>No hay tiendas registradas.</p>
       )}
 
-      {!isLoading && !error && stores.length > 0 && (
+      {stores.length > 0 && (
         <div style={styles.grid}>
           {stores.map(store => (
             <button
