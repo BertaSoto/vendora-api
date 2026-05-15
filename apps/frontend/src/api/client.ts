@@ -1,9 +1,15 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? ''
+const TOKEN_KEY = 'vendora_token'
 
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${BASE_URL}${path}`
+  const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options?.headers,
+    },
     ...options,
   })
 
