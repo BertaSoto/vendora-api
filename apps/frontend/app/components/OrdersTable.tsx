@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { ordersApi } from '../../src/api/orders'
-import { getStoreId } from '../../src/store'
 import type { Order, OrderStatus } from '../../src/types'
 
 const fmt = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 })
@@ -22,17 +21,17 @@ const STATUS_STYLE: Record<OrderStatus, React.CSSProperties> = {
   cancelled: { backgroundColor: '#fee2e2', color: '#991b1b' },
 }
 
-export default function OrdersTable() {
+export default function OrdersTable({ storeId }: { storeId: string }) {
   const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    ordersApi.list(getStoreId())
+    ordersApi.list(storeId)
       .then(setOrders)
       .catch(err => setError(err instanceof Error ? err.message : 'Error al cargar órdenes'))
       .finally(() => setIsLoading(false))
-  }, [])
+  }, [storeId])
 
   return (
     <section style={styles.card}>

@@ -1,32 +1,42 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+
+const TOKEN_KEY = 'vendora_token'
+
 export default function HomePage() {
+  const router = useRouter()
+  const [checking, setChecking] = useState(true)
+
+  useEffect(() => {
+    const token = localStorage.getItem(TOKEN_KEY)
+    if (token) {
+      router.replace('/dashboard')
+    } else {
+      setChecking(false)
+    }
+  }, [router])
+
+  if (checking) {
+    return (
+      <div style={styles.loading}>
+        <span style={styles.loadingText}>Cargando…</span>
+      </div>
+    )
+  }
+
   return (
     <main style={styles.main}>
       <div style={styles.card}>
-        <h1 style={styles.title}>Vendora Frontend</h1>
-        <p style={styles.subtitle}>
-          Panel de administración listo para desarrollo.
-        </p>
-        <div style={styles.links}>
-          <a href="/login" style={{ ...styles.link, backgroundColor: 'var(--color-primary-dark)' }}>
+        <h1 style={styles.title}>Vendora</h1>
+        <p style={styles.subtitle}>Panel de administración</p>
+        <div style={styles.actions}>
+          <a href="/auth/login" style={styles.btnPrimary}>
             Iniciar sesión
           </a>
-          <a href="/register" style={{ ...styles.link, backgroundColor: 'var(--color-primary-dark)' }}>
-            Crear cuenta
-          </a>
-          <a href="/api/auth/health" style={styles.link}>
-            Auth Service
-          </a>
-          <a href="/api/stores/health" style={styles.link}>
-            Store Service
-          </a>
-          <a href="/api/products/health" style={styles.link}>
-            Product Service
-          </a>
-          <a href="/api/orders/health" style={styles.link}>
-            Order Service
-          </a>
-          <a href="/api/dashboard/health" style={styles.link}>
-            BFF Service
+          <a href="/auth/register" style={styles.btnSecondary}>
+            Registrarse
           </a>
         </div>
       </div>
@@ -35,6 +45,17 @@ export default function HomePage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
+  loading: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '100vh',
+    backgroundColor: 'var(--color-bg)',
+  },
+  loadingText: {
+    fontSize: '0.875rem',
+    color: 'var(--color-text-muted)',
+  },
   main: {
     display: 'flex',
     alignItems: 'center',
@@ -49,7 +70,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 'var(--radius)',
     padding: '48px',
     textAlign: 'center',
-    maxWidth: '480px',
+    maxWidth: '400px',
     width: '100%',
     boxShadow: 'var(--shadow)',
   },
@@ -61,24 +82,34 @@ const styles: Record<string, React.CSSProperties> = {
   },
   subtitle: {
     color: 'var(--color-text-muted)',
-    marginBottom: '32px',
+    marginBottom: '36px',
     fontSize: '1rem',
   },
-  links: {
+  actions: {
     display: 'flex',
     flexDirection: 'column',
     gap: '12px',
-    alignItems: 'center',
+    alignItems: 'stretch',
   },
-  link: {
+  btnPrimary: {
     display: 'block',
-    padding: '8px 20px',
+    padding: '12px 20px',
     borderRadius: 'var(--radius)',
     backgroundColor: 'var(--color-primary)',
     color: 'white',
     textDecoration: 'none',
-    fontSize: '0.9rem',
-    fontWeight: 500,
-    width: '220px',
+    fontSize: '0.95rem',
+    fontWeight: 600,
+  },
+  btnSecondary: {
+    display: 'block',
+    padding: '12px 20px',
+    borderRadius: 'var(--radius)',
+    backgroundColor: 'transparent',
+    color: 'var(--color-primary)',
+    textDecoration: 'none',
+    fontSize: '0.95rem',
+    fontWeight: 600,
+    border: '1px solid var(--color-primary)',
   },
 }

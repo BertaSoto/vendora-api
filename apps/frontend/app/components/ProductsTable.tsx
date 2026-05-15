@@ -2,22 +2,21 @@
 
 import { useEffect, useState } from 'react'
 import { productsApi } from '../../src/api/products'
-import { getStoreId } from '../../src/store'
 import type { Product } from '../../src/types'
 
 const fmt = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 })
 
-export default function ProductsTable() {
+export default function ProductsTable({ storeId }: { storeId: string }) {
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    productsApi.list(getStoreId())
+    productsApi.list(storeId)
       .then(setProducts)
       .catch(err => setError(err instanceof Error ? err.message : 'Error al cargar productos'))
       .finally(() => setIsLoading(false))
-  }, [])
+  }, [storeId])
 
   return (
     <section style={styles.card}>
