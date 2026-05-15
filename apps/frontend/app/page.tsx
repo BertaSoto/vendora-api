@@ -7,7 +7,10 @@ export default function HomePage() {
           Panel de administración listo para desarrollo.
         </p>
         <div style={styles.links}>
-          <a href="/login" style={{ ...styles.link, backgroundColor: 'var(--color-primary-dark)' }}>
+          <a href="/dashboard" style={{ ...styles.link, backgroundColor: 'var(--color-primary-dark)' }}>
+            Panel de control
+          </a>
+          <a href="/login" style={styles.link}>
             Iniciar sesión
           </a>
           <a href="/api/auth/health" style={styles.link}>
