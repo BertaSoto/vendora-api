@@ -55,7 +55,7 @@ export default function LoginForm() {
     if (emailError || passwordError) return
 
     const ok = await login({ email, password })
-    if (ok) router.push('/')
+    if (ok) router.push('/dashboard')
   }
 
   return (
@@ -115,6 +115,11 @@ export default function LoginForm() {
         {isLoading ? <span style={styles.spinner} /> : null}
         {isLoading ? 'Iniciando sesión…' : 'Iniciar sesión'}
       </button>
+
+      <p style={styles.registerLink}>
+        ¿No tienes cuenta?{' '}
+        <a href="/auth/register" style={styles.link}>Regístrate</a>
+      </p>
     </form>
   )
 }
@@ -205,5 +210,15 @@ const styles: Record<string, React.CSSProperties> = {
     borderTopColor: '#fff',
     borderRadius: '50%',
     animation: 'spin 0.7s linear infinite',
+  },
+  registerLink: {
+    fontSize: '0.85rem',
+    color: 'var(--color-text-muted)',
+    textAlign: 'center',
+  },
+  link: {
+    color: 'var(--color-primary)',
+    textDecoration: 'none',
+    fontWeight: 500,
   },
 }

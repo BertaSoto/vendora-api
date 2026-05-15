@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
-const AUTH_URL = 'https://vendora-api-auth-service.vercel.app/auth/login'
+const AUTH_URL = '/api/auth/login'  // Rewrite Next.js en dev
 const TOKEN_KEY = 'vendora_token'
 
 interface AuthState {

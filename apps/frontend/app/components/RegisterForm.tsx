@@ -47,7 +47,7 @@ export default function RegisterForm() {
 
   useEffect(() => {
     if (!success) return
-    const timer = setTimeout(() => router.push('/login'), 2000)
+    const timer = setTimeout(() => router.push('/auth/login'), 2000)
     return () => clearTimeout(timer)
   }, [success, router])
 
@@ -157,7 +157,7 @@ export default function RegisterForm() {
 
       <p style={styles.loginLink}>
         ¿Ya tienes cuenta?{' '}
-        <a href="/login" style={styles.link}>Inicia sesión</a>
+        <a href="/auth/login" style={styles.link}>Inicia sesión</a>
       </p>
     </form>
   )

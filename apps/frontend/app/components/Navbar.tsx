@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '../../src/hooks/useAuth'
 import { decodeJwtPayload } from '../../src/lib/jwt'
 
@@ -9,8 +9,14 @@ interface TokenPayload {
   email?: string
 }
 
+const NAV_LINKS = [
+  { label: 'Inicio', href: '/dashboard' },
+  { label: 'Tiendas', href: '/dashboard/tiendas' },
+]
+
 export default function Navbar() {
   const router = useRouter()
+  const pathname = usePathname()
   const { token, logout } = useAuth()
 
   const payload = token ? decodeJwtPayload<TokenPayload>(token) : null
@@ -18,12 +24,28 @@ export default function Navbar() {
 
   function handleLogout() {
     logout()
-    router.push('/login')
+    router.push('/auth/login')
   }
 
   return (
     <nav style={styles.nav}>
-      <span style={styles.logo}>Vendora</span>
+      <div style={styles.left}>
+        <span style={styles.logo}>Vendora</span>
+        <div style={styles.links}>
+          {NAV_LINKS.map(link => (
+            <a
+              key={link.href}
+              href={link.href}
+              style={{
+                ...styles.navLink,
+                ...(pathname === link.href ? styles.navLinkActive : {}),
+              }}
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
+      </div>
       <div style={styles.right}>
         <span style={styles.userName}>{displayName}</span>
         <button onClick={handleLogout} style={styles.logoutBtn}>
@@ -48,11 +70,33 @@ const styles: Record<string, React.CSSProperties> = {
     top: 0,
     zIndex: 100,
   },
+  left: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '24px',
+  },
   logo: {
     fontSize: '1.1rem',
     fontWeight: 700,
     color: 'var(--color-primary)',
     letterSpacing: '-0.3px',
+  },
+  links: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  },
+  navLink: {
+    padding: '6px 12px',
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    color: 'var(--color-text-muted)',
+    textDecoration: 'none',
+    borderRadius: 'var(--radius)',
+  },
+  navLinkActive: {
+    color: 'var(--color-primary)',
+    backgroundColor: '#ede9fe',
   },
   right: {
     display: 'flex',
