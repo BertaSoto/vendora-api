@@ -7,6 +7,9 @@ export default function HomePage() {
           Panel de administración listo para desarrollo.
         </p>
         <div style={styles.links}>
+          <a href="/login" style={{ ...styles.link, backgroundColor: 'var(--color-primary-dark)' }}>
+            Iniciar sesión
+          </a>
           <a href="/register" style={{ ...styles.link, backgroundColor: 'var(--color-primary-dark)' }}>
             Crear cuenta
           </a>
