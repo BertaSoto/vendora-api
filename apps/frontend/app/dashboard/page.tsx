@@ -2,6 +2,8 @@
 
 import { useAuth } from '../../src/hooks/useAuth'
 import { decodeJwtPayload } from '../../src/lib/jwt'
+import ProductsTable from '../components/ProductsTable'
+import OrdersTable from '../components/OrdersTable'
 
 interface TokenPayload {
   fullName?: string
@@ -14,22 +16,43 @@ export default function DashboardPage() {
   const name = payload?.fullName ?? payload?.email ?? 'Usuario'
 
   return (
-    <div>
-      <h1 style={styles.heading}>Bienvenido, {name}</h1>
-      <p style={styles.subtext}>Este es tu panel de administración de Vendora.</p>
+    <div style={styles.container}>
+      <div style={styles.header}>
+        <h1 style={styles.heading}>Bienvenido, {name}</h1>
+        <p style={styles.subtext}>Panel de administración de Vendora</p>
+      </div>
+
+      <div style={styles.sections}>
+        <ProductsTable />
+        <OrdersTable />
+      </div>
     </div>
   )
 }
 
 const styles: Record<string, React.CSSProperties> = {
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '32px',
+  },
+  header: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+  },
   heading: {
-    fontSize: '1.75rem',
+    fontSize: '1.5rem',
     fontWeight: 700,
     color: 'var(--color-text)',
-    marginBottom: '8px',
   },
   subtext: {
-    fontSize: '1rem',
+    fontSize: '0.875rem',
     color: 'var(--color-text-muted)',
+  },
+  sections: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '24px',
   },
 }
