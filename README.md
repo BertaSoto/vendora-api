@@ -243,6 +243,140 @@ Backend for Frontend: agrega datos de varios servicios en una sola llamada para 
 
 ---
 
+## Frontend — Panel Admin
+
+Aplicación Next.js 15 con App Router, levantada en el puerto `:5173` durante desarrollo.
+
+### Estructura de carpetas
+
+```
+apps/frontend/
+├── app/                        # App Router — layouts, páginas y componentes
+│   ├── layout.tsx              # RootLayout
+│   ├── page.tsx                # Home: redirige a /dashboard si hay sesión
+│   ├── auth/
+│   │   ├── login/page.tsx      # Formulario de inicio de sesión
+│   │   └── register/page.tsx   # Formulario de registro
+│   ├── dashboard/
+│   │   ├── layout.tsx          # Layout protegido: verifica token en cada carga
+│   │   ├── page.tsx            # Panel principal con bienvenida
+│   │   └── tiendas/
+│   │       ├── page.tsx        # Listado de tiendas del merchant
+│   │       └── [id]/page.tsx   # Detalle de tienda: productos y órdenes
+│   └── components/             # LoginForm, RegisterForm, Navbar, ProductsTable, OrdersTable
+└── src/
+    ├── api/                    # Clientes HTTP por microservicio
+    │   ├── client.ts           # apiFetch — wrapper con Bearer token automático
+    │   ├── auth.ts             # authApi.register()
+    │   ├── dashboard.ts        # dashboardApi.get(storeId)
+    │   ├── products.ts         # productsApi.list / getById / create / updateStock / delete
+    │   ├── orders.ts           # ordersApi.list / getById / create
+    │   └── stores.ts           # storesApi.list / getById
+    ├── hooks/
+    │   └── useAuth.ts          # Gestión de sesión JWT (token, login, logout)
+    ├── lib/
+    │   └── jwt.ts              # Decodificador JWT lado cliente (sin verificación criptográfica)
+    └── types/
+        └── index.ts            # Interfaces TypeScript compartidas
+```
+
+### Rutas principales
+
+| Ruta | Protegida | Descripción |
+|---|---|---|
+| `/` | No | Home — redirige a `/dashboard` si hay token en localStorage |
+| `/auth/login` | No | Formulario de inicio de sesión |
+| `/auth/register` | No | Formulario de registro de nuevos merchants |
+| `/dashboard` | Sí | Panel principal con bienvenida al usuario |
+| `/dashboard/tiendas` | Sí | Listado de tiendas del merchant |
+| `/dashboard/tiendas/[id]` | Sí | Detalle de tienda: productos y órdenes |
+
+Las rutas bajo `/dashboard` están protegidas por `dashboard/layout.tsx`, que verifica la existencia del token en `localStorage` y redirige a `/auth/login` si no hay sesión activa.
+
+### Hook `useAuth`
+
+```typescript
+import { useAuth } from '@/src/hooks/useAuth'
+
+const { token, isAuthenticated, isLoading, error, login, logout, clearError } = useAuth()
+
+// Iniciar sesión
+const ok = await login({ email: 'usuario@ejemplo.com', password: 'secret' })
+
+// Cerrar sesión
+logout()
+```
+
+El hook persiste el token en `localStorage` y en una cookie (`vendora_token`, 7 días de expiración). El cliente `apiFetch` lee el token de `localStorage` e incluye `Authorization: Bearer <token>` en cada petición autenticada.
+
+### Flujo de autenticación (frontend)
+
+```
+1. /auth/login  →  useAuth.login()  →  POST /api/auth/login
+2. Respuesta { token }  →  localStorage.setItem + cookie vendora_token (7 días)
+3. Redirige a /dashboard
+4. dashboard/layout.tsx verifica localStorage en cada carga de página
+5. Navbar decodifica JWT para mostrar nombre del usuario
+6. logout() limpia localStorage y expira la cookie
+```
+
+---
+
+## Ejemplos cURL
+
+### Registrar usuario
+
+```bash
+curl -X POST http://localhost:3004/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "usuario@ejemplo.com",
+    "password": "contraseña123",
+    "fullName": "Nombre Apellido"
+  }'
+```
+
+**Respuesta exitosa (`201 Created`):**
+```json
+{ "message": "User registered" }
+```
+
+---
+
+### Iniciar sesión
+
+```bash
+curl -X POST http://localhost:3004/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "usuario@ejemplo.com",
+    "password": "contraseña123"
+  }'
+```
+
+**Respuesta exitosa (`200 OK`):**
+```json
+{ "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+```
+
+---
+
+### Listar productos de una tienda
+
+```bash
+curl -X GET "http://localhost:3001/products?storeId=<uuid-de-la-tienda>" \
+  -H "Authorization: Bearer <token>"
+```
+
+**Respuesta exitosa (`200 OK`):**
+```json
+[
+  { "id": "...", "name": "Producto A", "price": 9990, "stock": 50, "storeId": "..." }
+]
+```
+
+---
+
 ## Deploy en Vercel + Supabase
 
 ### 1. Configurar Supabase
@@ -386,4 +520,72 @@ El flujo JWT funciona así:
 3. Requests autenticadas incluyen: Authorization: Bearer <token>
 4. auth-middleware (jose) valida el JWT contra SUPABASE_JWT_SECRET
 5. Si inválido/expirado → 401 Unauthorized
+```
+
+---
+
+## Troubleshooting
+
+### `Cannot find module '@vendora/...'`
+
+Los paquetes internos deben compilarse antes de usarse. Ejecuta desde la raíz:
+
+```bash
+pnpm build
+```
+
+O compila solo el paquete que falta:
+
+```bash
+pnpm --filter @vendora/auth-middleware build
+pnpm --filter @vendora/database build
+```
+
+---
+
+### Token expirado — `401 Unauthorized`
+
+Los tokens JWT de Supabase expiran en **1 hora** por defecto. Solución:
+
+1. Vuelve a hacer `POST /auth/login` para obtener un token nuevo.
+2. En el frontend, `useAuth` no refresca el token automáticamente: cierra sesión e inicia de nuevo.
+3. Si el 401 ocurre con tokens recién generados, verifica que `SUPABASE_JWT_SECRET` en `.env` sea exactamente el valor de **Supabase → Settings → API → JWT Secret**.
+
+---
+
+### `WebSocket is not defined` (Node.js)
+
+Error común en entornos Node.js sin soporte nativo de WebSocket:
+
+1. Verifica que estés en Node.js 20+ (`node --version`).
+2. Si no puedes actualizar, agrega la siguiente variable al arrancar:
+
+```bash
+NODE_OPTIONS=--experimental-websocket pnpm dev
+```
+
+---
+
+### Puerto ya en uso (`EADDRINUSE`)
+
+```bash
+# Windows — encontrar y matar el proceso
+netstat -ano | findstr :<puerto>
+taskkill /PID <pid> /F
+
+# macOS/Linux
+lsof -i :<puerto>
+kill -9 <pid>
+```
+
+---
+
+### `PrismaClientInitializationError` — no puede conectar a la base de datos
+
+1. Verifica que `DATABASE_URL` en `.env` sea la URL **pooled** de Supabase (puerto 6543).
+2. Para migraciones, `prisma migrate` requiere `DIRECT_URL` (sin pooler, puerto 5432).
+3. Si cambiaste `schema.prisma`, regenera el cliente:
+
+```bash
+npx prisma generate
 ```
