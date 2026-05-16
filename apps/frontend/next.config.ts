@@ -1,28 +1,32 @@
 import type { NextConfig } from 'next'
 
+const isDev = process.env.NODE_ENV !== 'production'
+
 const nextConfig: NextConfig = {
   outputFileTracingRoot: process.cwd(),
   async rewrites() {
+    if (!isDev) return []
+
     return [
       {
         source: '/api/dashboard/:path*',
-        destination: 'https://vendora-api-admin-bff.vercel.app/dashboard/:path*',
+        destination: 'http://localhost:3000/dashboard/:path*',
       },
       {
         source: '/api/products/:path*',
-        destination: 'https://vendora-api-product-service.vercel.app/products/:path*',
+        destination: 'http://localhost:3001/products/:path*',
       },
       {
         source: '/api/orders/:path*',
-        destination: 'https://vendora-api-order-service.vercel.app/orders/:path*',
+        destination: 'http://localhost:3002/orders/:path*',
       },
       {
         source: '/api/stores/:path*',
-        destination: 'https://vendora-api-store-service.vercel.app/stores/:path*',
+        destination: 'http://localhost:3003/stores/:path*',
       },
       {
         source: '/api/auth/:path*',
-        destination: 'https://vendora-api-auth-service.vercel.app/auth/:path*',
+        destination: 'http://localhost:3004/auth/:path*',
       },
     ]
   },

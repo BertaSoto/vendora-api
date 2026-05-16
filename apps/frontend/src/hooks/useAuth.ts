@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
-const AUTH_URL = '/api/auth/login'  // Rewrite Next.js en dev
+const AUTH_URL = process.env.NODE_ENV === 'production'
+  ? `${process.env.NEXT_PUBLIC_AUTH_SERVICE_URL}/auth/login`
+  : '/api/auth/login'
 const TOKEN_KEY = 'vendora_token'
 
 interface AuthState {
