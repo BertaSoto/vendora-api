@@ -1,18 +1,6 @@
-<<<<<<< HEAD
-import LoginForm from '../../components/LoginForm'
-
-export const metadata = {
-  title: 'Iniciar sesión — Vendora',
-}
-
-export default function LoginPage() {
-  return (
-    <main style={styles.main}>
-      <LoginForm />
-=======
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type CSSProperties } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../../../src/hooks/useAuth'
 
@@ -37,19 +25,28 @@ export default function LoginPage() {
             type="email"
             placeholder="Correo electrónico"
             value={email}
-            onChange={(e) => { setEmail(e.target.value); clearError() }}
+            onChange={(e) => {
+              setEmail(e.target.value)
+              clearError()
+            }}
             required
             style={styles.input}
           />
+
           <input
             type="password"
             placeholder="Contraseña"
             value={password}
-            onChange={(e) => { setPassword(e.target.value); clearError() }}
+            onChange={(e) => {
+              setPassword(e.target.value)
+              clearError()
+            }}
             required
             style={styles.input}
           />
+
           {error && <p style={styles.error}>{error}</p>}
+
           <button type="submit" disabled={isLoading} style={styles.button}>
             {isLoading ? 'Ingresando...' : 'Iniciar sesión'}
           </button>
@@ -62,21 +59,17 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
->>>>>>> qa
     </main>
   )
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, CSSProperties> = {
   main: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: '100vh',
     backgroundColor: 'var(--color-bg)',
-<<<<<<< HEAD
-    padding: '24px',
-=======
     fontFamily: 'system-ui, sans-serif',
   },
   card: {
@@ -140,6 +133,5 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--color-primary)',
     textDecoration: 'none',
     fontWeight: 600,
->>>>>>> qa
   },
 }
