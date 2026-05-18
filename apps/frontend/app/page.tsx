@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -112,4 +113,10 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     border: '1px solid var(--color-primary)',
   },
+=======
+import { redirect } from 'next/navigation'
+
+export default function HomePage() {
+  redirect('/auth/login')
+>>>>>>> qa
 }

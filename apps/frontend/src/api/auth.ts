@@ -7,7 +7,19 @@ export interface RegisterDto {
 }
 
 export interface RegisterResponse {
-  message: string
+  success: boolean
+  data?: {
+    user: {
+      id: string
+      email: string
+      fullName: string
+      createdAt: string
+    }
+    accessToken: string
+    refreshToken: string
+    expiresAt: number
+  }
+  error?: string
 }
 
 export const authApi = {
