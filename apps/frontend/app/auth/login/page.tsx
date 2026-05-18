@@ -1,17 +1,22 @@
 'use client'
 
 import { useState, type FormEvent, type CSSProperties } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '../../../src/hooks/useAuth'
 
 export default function LoginPage() {
+  const router = useRouter()
   const { login, isLoading, error, clearError } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    await login({ email, password })
+    const success = await login({ email, password })
+    if (success) {
+      router.push('/dashboard')
+    }
   }
 
   return (
