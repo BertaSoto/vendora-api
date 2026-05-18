@@ -1,8 +1,18 @@
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 import authRoutes from './routes/auth.routes.js'
 import type { ApiSuccessResponse, HealthData } from './types/auth.type.js'
 
 const app = new Hono()
+
+app.use('*', cors({
+  origin: [
+    'https://vendora-frontend-xi.vercel.app',
+    'http://localhost:3000',
+  ],
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+}))
 
 app.get('/health', (c) => {
   const response: ApiSuccessResponse<HealthData> = {
