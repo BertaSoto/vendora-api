@@ -1,31 +1,60 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useAuth } from '../../../src/hooks/useAuth'
+import { authApi } from '../../../src/api/auth'
 
-export default function LoginPage() {
-  const { login, isLoading, error, clearError } = useAuth()
+export default function RegisterPage() {
+  const router = useRouter()
+  const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    await login({ email, password })
+    setError(null)
+
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      await authApi.register({ email, password, fullName })
+      router.push('/auth/login')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al registrarse'
+      setError(message)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
     <main style={styles.main}>
       <div style={styles.card}>
         <h1 style={styles.title}>Vendora</h1>
-        <p style={styles.subtitle}>Inicia sesión para continuar</p>
+        <p style={styles.subtitle}>Crea tu cuenta</p>
 
         <form onSubmit={handleSubmit} style={styles.form}>
+          <input
+            type="text"
+            placeholder="Nombre completo"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            required
+            style={styles.input}
+          />
           <input
             type="email"
             placeholder="Correo electrónico"
             value={email}
-            onChange={(e) => { setEmail(e.target.value); clearError() }}
+            onChange={(e) => setEmail(e.target.value)}
             required
             style={styles.input}
           />
@@ -33,20 +62,28 @@ export default function LoginPage() {
             type="password"
             placeholder="Contraseña"
             value={password}
-            onChange={(e) => { setPassword(e.target.value); clearError() }}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={styles.input}
+          />
+          <input
+            type="password"
+            placeholder="Confirmar contraseña"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             required
             style={styles.input}
           />
           {error && <p style={styles.error}>{error}</p>}
           <button type="submit" disabled={isLoading} style={styles.button}>
-            {isLoading ? 'Ingresando...' : 'Iniciar sesión'}
+            {isLoading ? 'Creando cuenta...' : 'Registrarse'}
           </button>
         </form>
 
         <p style={styles.footer}>
-          ¿No tienes cuenta?{' '}
-          <Link href="/auth/register" style={styles.link}>
-            Regístrate
+          ¿Ya tienes cuenta?{' '}
+          <Link href="/auth/login" style={styles.link}>
+            Inicia sesión
           </Link>
         </p>
       </div>
