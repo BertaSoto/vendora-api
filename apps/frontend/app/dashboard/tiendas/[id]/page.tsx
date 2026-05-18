@@ -1,10 +1,24 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
+import type { CSSProperties } from 'react'
 import type { Store, Product, Order, OrderStatus } from '../../../../src/types'
 
-const fmt = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 })
-const dateFmt = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' })
+function formatPrice(value: number): string {
+  try {
+    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(value)
+  } catch {
+    return `$${value}`
+  }
+}
+
+function formatDate(iso: string): string {
+  try {
+    return new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(iso))
+  } catch {
+    return iso.slice(0, 10)
+  }
+}
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
   pending:   'Pendiente',
@@ -13,7 +27,7 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
   cancelled: 'Cancelado',
 }
 
-const STATUS_STYLE: Record<OrderStatus, React.CSSProperties> = {
+const STATUS_STYLE: Record<OrderStatus, CSSProperties> = {
   pending:   { backgroundColor: '#fef3c7', color: '#92400e' },
   confirmed: { backgroundColor: '#ede9fe', color: '#4338ca' },
   delivered: { backgroundColor: '#d1fae5', color: '#065f46' },
@@ -99,7 +113,7 @@ function ProductsSection({ products }: { products: Product[] }) {
                     <span style={tableStyles.productName}>{p.name}</span>
                     {p.description && <span style={tableStyles.description}>{p.description}</span>}
                   </td>
-                  <td style={{ ...tableStyles.td, ...tableStyles.tdRight }}>{fmt.format(p.price)}</td>
+                  <td style={{ ...tableStyles.td, ...tableStyles.tdRight }}>{formatPrice(p.price)}</td>
                   <td style={{ ...tableStyles.td, ...tableStyles.tdRight }}>
                     <span style={{ ...tableStyles.stockBadge, ...(p.stock <= 5 ? tableStyles.stockLow : {}) }}>
                       {p.stock}
@@ -144,9 +158,9 @@ function OrdersSection({ orders }: { orders: Order[] }) {
                       {STATUS_LABEL[o.status]}
                     </span>
                   </td>
-                  <td style={{ ...tableStyles.td, ...tableStyles.tdRight }}>{fmt.format(o.total)}</td>
+                  <td style={{ ...tableStyles.td, ...tableStyles.tdRight }}>{formatPrice(o.total)}</td>
                   <td style={{ ...tableStyles.td, ...tableStyles.tdRight }}>
-                    {dateFmt.format(new Date(o.createdAt))}
+                    {formatDate(o.createdAt)}
                   </td>
                 </tr>
               ))}
@@ -172,7 +186,7 @@ export default function TiendaDetailPage() {
     suspended: 'Suspendida',
   }
 
-  const statusStyle: Record<Store['status'], React.CSSProperties> = {
+  const statusStyle: Record<Store['status'], CSSProperties> = {
     active: { backgroundColor: '#d1fae5', color: '#065f46' },
     inactive: { backgroundColor: '#f1f5f9', color: '#475569' },
     suspended: { backgroundColor: '#fee2e2', color: '#991b1b' },
@@ -211,7 +225,7 @@ export default function TiendaDetailPage() {
   )
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, CSSProperties> = {
   container: {
     display: 'flex',
     flexDirection: 'column',
@@ -269,7 +283,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
 }
 
-const tableStyles: Record<string, React.CSSProperties> = {
+const tableStyles: Record<string, CSSProperties> = {
   card: {
     backgroundColor: 'var(--color-surface)',
     border: '1px solid var(--color-border)',
