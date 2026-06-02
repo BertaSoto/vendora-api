@@ -1,5 +1,9 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import WebSocket from 'ws'
+import ws from 'ws'
+
+if (typeof globalThis.WebSocket === 'undefined') {
+  ;(globalThis as Record<string, unknown>).WebSocket = ws
+}
 
 let client: SupabaseClient | null = null
 
@@ -15,13 +19,7 @@ function getClient(): SupabaseClient {
 
   client = createClient(
     process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
-    {
-      realtime: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        transport: WebSocket as any,
-      },
-    }
+    process.env.SUPABASE_SERVICE_ROLE_KEY
   )
   return client
 }
