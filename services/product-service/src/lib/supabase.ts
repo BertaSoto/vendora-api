@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import ws from 'ws'
+import WebSocket from 'ws'
 
 let client: SupabaseClient | null = null
 
@@ -19,7 +19,7 @@ function getClient(): SupabaseClient {
     process.env.SUPABASE_SERVICE_ROLE_KEY,
     {
       realtime: {
-        transport: ws,
+        transport: WebSocket as never,
       },
     },
   )
