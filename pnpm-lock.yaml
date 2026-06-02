@@ -107,6 +107,9 @@ importers:
       hono:
         specifier: ^4.12.8
         version: 4.12.18
+      ws:
+        specifier: ^8.18.0
+        version: 8.21.0
     devDependencies:
       '@types/node':
         specifier: ^22.0.0
@@ -126,6 +129,9 @@ importers:
       hono:
         specifier: ^4.12.8
         version: 4.12.18
+      ws:
+        specifier: ^8.18.0
+        version: 8.21.0
     devDependencies:
       '@types/node':
         specifier: ^22.19.15
@@ -148,6 +154,9 @@ importers:
       hono:
         specifier: ^4.12.8
         version: 4.12.18
+      ws:
+        specifier: ^8.18.0
+        version: 8.21.0
     devDependencies:
       '@types/node':
         specifier: ^22.19.15
@@ -170,6 +179,9 @@ importers:
       hono:
         specifier: ^4.12.8
         version: 4.12.18
+      ws:
+        specifier: ^8.18.0
+        version: 8.21.0
     devDependencies:
       '@types/node':
         specifier: ^22.19.15
@@ -192,6 +204,9 @@ importers:
       hono:
         specifier: ^4.12.8
         version: 4.12.18
+      ws:
+        specifier: ^8.18.0
+        version: 8.21.0
     devDependencies:
       '@types/node':
         specifier: ^22.19.15
@@ -1274,6 +1289,18 @@ packages:
     engines: {node: '>= 8'}
     hasBin: true
 
+  ws@8.21.0:
+    resolution: {integrity: sha512-Vsp28b7DRcimFQvrqu2Wek3z1iYxDCWqHYB8Qsnk/S4RfaCQzPGPyBNuVjJV3cd6UiKtUtp6sNM77gWvzcCH+g==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
     engines: {node: '>=0.4'}
@@ -2204,6 +2231,8 @@ snapshots:
   which@2.0.2:
     dependencies:
       isexe: 2.0.0
+
+  ws@8.21.0: {}
 
   xtend@4.0.2: {}
 

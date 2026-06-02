@@ -12,7 +12,8 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",
     "@vendora/auth-middleware": "workspace:*",
-    "hono": "^4.12.8"
+    "hono": "^4.12.8",
+    "ws": "^8.18.0"
   },
   "engines": {
     "node": "20.x"
