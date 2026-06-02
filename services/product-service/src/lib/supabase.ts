@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import ws from 'ws'
 
 let client: SupabaseClient | null = null
 
@@ -8,14 +9,21 @@ function getClient(): SupabaseClient {
   if (!process.env.SUPABASE_URL) {
     throw new Error('SUPABASE_URL is required. Asegurate de configurarlo en tu .env.')
   }
+
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is required. Asegurate de configurarlo en tu .env.')
   }
 
   client = createClient(
     process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+      realtime: {
+        transport: ws,
+      },
+    },
   )
+
   return client
 }
 
