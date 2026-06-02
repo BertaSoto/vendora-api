@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import WebSocket from 'ws'
 
 let client: SupabaseClient | null = null
 
@@ -14,7 +15,13 @@ function getClient(): SupabaseClient {
 
   client = createClient(
     process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+      realtime: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        transport: WebSocket as any,
+      },
+    }
   )
   return client
 }
@@ -27,4 +34,3 @@ export const supabase = new Proxy({} as SupabaseClient, {
     return Reflect.apply(getClient() as never, undefined, args)
   },
 })
-

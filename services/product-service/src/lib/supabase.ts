@@ -9,7 +9,6 @@ function getClient(): SupabaseClient {
   if (!process.env.SUPABASE_URL) {
     throw new Error('SUPABASE_URL is required. Asegurate de configurarlo en tu .env.')
   }
-
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is required. Asegurate de configurarlo en tu .env.')
   }
@@ -19,11 +18,11 @@ function getClient(): SupabaseClient {
     process.env.SUPABASE_SERVICE_ROLE_KEY,
     {
       realtime: {
-        transport: WebSocket as never,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        transport: WebSocket as any,
       },
-    },
+    }
   )
-
   return client
 }
 
