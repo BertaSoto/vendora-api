@@ -101,6 +101,23 @@ export class ProductService {
     return true
   }
 
+  async updateStock(id: string, stock: number): Promise<ProductResponseDto | null> {
+    if (!id) throw new Error('id is required')
+    if (typeof stock !== 'number' || stock < 0) {
+      throw new Error('stock must be a non-negative integer')
+    }
+
+    const { data, error } = await supabase
+      .from('products')
+      .update({ stock })
+      .eq('id', id)
+      .select()
+      .single<ProductRow>()
+
+    if (error) return null
+    return rowToProduct(data)
+  }
+
   private validateCreateDto(dto: CreateProductDto): void {
     if (!dto.storeId) {
       throw new Error('storeId is required')

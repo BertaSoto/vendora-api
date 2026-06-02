@@ -101,6 +101,9 @@ importers:
 
   services/admin-bff:
     dependencies:
+      '@supabase/supabase-js':
+        specifier: ^2.105.4
+        version: 2.105.4
       hono:
         specifier: ^4.12.8
         version: 4.12.18
@@ -183,6 +186,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.105.4
         version: 2.105.4
+      '@vendora/auth-middleware':
+        specifier: workspace:*
+        version: link:../../packages/auth-middleware
       hono:
         specifier: ^4.12.8
         version: 4.12.18

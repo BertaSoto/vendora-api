@@ -28,10 +28,21 @@ function resolveUrl(path: string): string {
   return path
 }
 
+function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('vendora_token')
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+  }
+  return headers
+}
+
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const url = resolveUrl(path)
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    headers: { ...getAuthHeaders(), ...options?.headers },
     ...options,
   })
 

@@ -54,12 +54,29 @@ orderRoutes.get('/:id', async (c) => {
   }
 })
 
-orderRoutes.patch('/:id', validateJWT(), async (c) => {
+orderRoutes.put('/:id', validateJWT(), async (c) => {
   const id = c.req.param('id')!
 
   try {
     const body = await c.req.json<UpdateOrderDto>()
     const order = await orderService.update(id, body)
+
+    if (!order) {
+      return c.json({ error: 'Order not found' }, 404)
+    }
+
+    return c.json(order)
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400)
+  }
+})
+
+orderRoutes.patch('/:id/status', validateJWT(), async (c) => {
+  const id = c.req.param('id')!
+
+  try {
+    const { status } = await c.req.json<{ status: string }>()
+    const order = await orderService.updateStatus(id, status)
 
     if (!order) {
       return c.json({ error: 'Order not found' }, 404)
