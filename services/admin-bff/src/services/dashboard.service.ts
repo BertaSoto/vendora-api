@@ -1,51 +1,59 @@
-import type { DashboardResponse, Store } from '../types/index.js'
+import { supabase } from '../lib/supabase.js'
+import type { Store, DashboardSummary, DashboardResponse } from '../types/index.js'
 
-interface ProductSummary {
-  productsCount: number
-  lowStockProducts: number
-}
-
-interface OrderSummary {
-  pendingOrders: number
-}
+const LOW_STOCK_THRESHOLD = 5
 
 export class DashboardService {
   private async fetchStore(storeId: string): Promise<Store> {
+    const { data, error } = await supabase
+      .from('stores')
+      .select('id, name, status')
+      .eq('id', storeId)
+      .single<{ id: string; name: string; status: string }>()
+
+    if (error || !data) {
+      throw new Error('Store not found')
+    }
+
     return {
-      id: storeId,
-      name: 'Joyas María',
-      status: 'active',
+      id: data.id,
+      name: data.name,
+      status: data.status as Store['status'],
     }
   }
 
-  private async fetchProductSummary(_storeId: string): Promise<ProductSummary> {
-    return {
-      productsCount: 6,
-      lowStockProducts: 2, // prod-003 (stock 3) y prod-005 (stock 2)
-    }
-  }
+  private async fetchProductSummary(storeId: string): Promise<DashboardSummary> {
+    const { data, error } = await supabase
+      .from('products')
+      .select('stock')
+      .eq('store_id', storeId)
 
-  private async fetchOrderSummary(_storeId: string): Promise<OrderSummary> {
-    return {
-      pendingOrders: 2, // order-001 y order-004
+    if (error) {
+      return { productsCount: 0, lowStockProducts: 0, pendingOrders: 0 }
     }
+
+    const products = data as { stock: number }[]
+    const productsCount = products.length
+    const lowStockProducts = products.filter(p => p.stock < LOW_STOCK_THRESHOLD).length
+
+    const { count: pendingOrders, error: orderError } = await supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('store_id', storeId)
+      .eq('status', 'pending')
+
+    if (orderError) {
+      return { productsCount, lowStockProducts, pendingOrders: 0 }
+    }
+
+    return { productsCount, lowStockProducts, pendingOrders: pendingOrders ?? 0 }
   }
 
   async getDashboard(storeId: string): Promise<DashboardResponse> {
-    const [store, products, orders] = await Promise.all([
-      this.fetchStore(storeId),
-      this.fetchProductSummary(storeId),
-      this.fetchOrderSummary(storeId),
-    ])
+    const store = await this.fetchStore(storeId)
+    const summary = await this.fetchProductSummary(storeId)
 
-    return {
-      store,
-      summary: {
-        productsCount: products.productsCount,
-        lowStockProducts: products.lowStockProducts,
-        pendingOrders: orders.pendingOrders,
-      },
-    }
+    return { store, summary }
   }
 }
 

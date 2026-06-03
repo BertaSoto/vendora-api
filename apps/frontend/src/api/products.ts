@@ -1,8 +1,8 @@
 import { apiFetch } from './client'
-import type { Product, CreateProductDto, UpdateStockDto } from '../types'
+import type { Product, CreateProductDto, UpdateProductDto, UpdateStockDto } from '../types'
 
 export const productsApi = {
-  list: (storeId: string) =>
+  listByStore: (storeId: string) =>
     apiFetch<Product[]>(`/api/products?storeId=${storeId}`),
 
   getById: (id: string) =>
@@ -14,12 +14,18 @@ export const productsApi = {
       body: JSON.stringify(dto),
     }),
 
-  updateStock: (id: string, dto: UpdateStockDto) =>
-    apiFetch<Product>(`/api/products/${id}/stock`, {
+  update: (id: string, dto: UpdateProductDto) =>
+    apiFetch<Product>(`/api/products/${id}`, {
       method: 'PUT',
       body: JSON.stringify(dto),
     }),
 
-  delete: (id: string) =>
+  updateStock: (id: string, dto: UpdateStockDto) =>
+    apiFetch<Product>(`/api/products/${id}/stock`, {
+      method: 'PATCH',
+      body: JSON.stringify(dto),
+    }),
+
+  remove: (id: string) =>
     apiFetch<void>(`/api/products/${id}`, { method: 'DELETE' }),
 }

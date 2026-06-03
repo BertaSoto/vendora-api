@@ -1,7 +1,7 @@
 export interface Store {
   id: string
   name: string
-  status: 'active' | 'inactive' | 'suspended'
+  status: 'active' | 'suspended' | 'trial'
 }
 
 export interface DashboardSummary {

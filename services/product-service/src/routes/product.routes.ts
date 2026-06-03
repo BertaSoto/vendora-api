@@ -52,12 +52,29 @@ productRoutes.get('/:id', async (c) => {
   }
 })
 
-productRoutes.patch('/:id', validateJWT(), async (c) => {
+productRoutes.put('/:id', validateJWT(), async (c) => {
   const id = c.req.param('id')!
 
   try {
     const body = await c.req.json<UpdateProductDto>()
     const product = await productService.update(id, body)
+
+    if (!product) {
+      return c.json({ error: 'Product not found' }, 404)
+    }
+
+    return c.json(product)
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400)
+  }
+})
+
+productRoutes.patch('/:id/stock', validateJWT(), async (c) => {
+  const id = c.req.param('id')!
+
+  try {
+    const { stock } = await c.req.json<{ stock: number }>()
+    const product = await productService.updateStock(id, stock)
 
     if (!product) {
       return c.json({ error: 'Product not found' }, 404)

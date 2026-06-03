@@ -1,14 +1,17 @@
 import { Hono } from 'hono'
 
 import { storeService } from '../services/store.service.js'
+import { validateJWT } from '@vendora/auth-middleware'
 import type { CreateStoreDto, UpdateStoreDto } from '../dtos/store.dto.js'
 
 const storeRoutes = new Hono()
 
-storeRoutes.post('/', async (c) => {
+storeRoutes.post('/', validateJWT(), async (c) => {
   try {
     const body = await c.req.json<CreateStoreDto>()
-    const store = await storeService.create(body)
+    const user = c.get('user')
+    const dto: CreateStoreDto = { ...body, merchantId: body.merchantId || user.id }
+    const store = await storeService.create(dto)
     return c.json(store, 201)
   } catch (err) {
     return c.json({ error: (err as Error).message }, 400)
@@ -49,8 +52,8 @@ storeRoutes.get('/:idOrSlug', async (c) => {
   }
 })
 
-storeRoutes.patch('/:id', async (c) => {
-  const id = c.req.param('id')
+storeRoutes.put('/:id', validateJWT(), async (c) => {
+  const id = c.req.param('id')!
 
   try {
     const body = await c.req.json<UpdateStoreDto>()
@@ -66,8 +69,25 @@ storeRoutes.patch('/:id', async (c) => {
   }
 })
 
-storeRoutes.delete('/:id', async (c) => {
-  const id = c.req.param('id')
+storeRoutes.patch('/:id', validateJWT(), async (c) => {
+  const id = c.req.param('id')!
+
+  try {
+    const body = await c.req.json<UpdateStoreDto>()
+    const store = await storeService.update(id, body)
+
+    if (!store) {
+      return c.json({ error: 'Store not found' }, 404)
+    }
+
+    return c.json(store)
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400)
+  }
+})
+
+storeRoutes.delete('/:id', validateJWT(), async (c) => {
+  const id = c.req.param('id')! 
 
   try {
     await storeService.delete(id)
