@@ -151,6 +151,9 @@ importers:
 
   services/order-service:
     dependencies:
+      '@hono/node-server':
+        specifier: ^1.13.0
+        version: 1.19.11(hono@4.12.18)
       '@supabase/supabase-js':
         specifier: ^2.105.4
         version: 2.105.4
@@ -179,6 +182,9 @@ importers:
 
   services/product-service:
     dependencies:
+      '@hono/node-server':
+        specifier: ^1.13.0
+        version: 1.19.11(hono@4.12.18)
       '@supabase/supabase-js':
         specifier: ^2.105.4
         version: 2.105.4
@@ -207,6 +213,9 @@ importers:
 
   services/store-service:
     dependencies:
+      '@hono/node-server':
+        specifier: ^1.13.0
+        version: 1.19.11(hono@4.12.18)
       '@supabase/supabase-js':
         specifier: ^2.105.4
         version: 2.105.4
