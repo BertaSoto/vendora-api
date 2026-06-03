@@ -20,6 +20,7 @@ export class ProductService {
       .single<ProductRow>()
 
     if (error) {
+      console.error('[SUPABASE PRODUCT] create error:', error)
       if (error.code === '23505') {
         throw new Error(`A product with the name "${dto.name}" already exists in this store.`)
       }
@@ -51,7 +52,10 @@ export class ProductService {
       .eq('store_id', storeId)
       .order('created_at', { ascending: false })
 
-    if (error) throw new Error(error.message)
+    if (error) {
+      console.error('[SUPABASE PRODUCT] findAllByStore error:', error)
+      throw new Error(error.message)
+    }
     return (data as ProductRow[]).map(rowToProduct)
   }
 

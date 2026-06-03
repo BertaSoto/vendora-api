@@ -17,6 +17,14 @@ function getClient(): SupabaseClient {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is required. Asegurate de configurarlo en tu .env.')
   }
 
+  try {
+    const url = new URL(process.env.SUPABASE_URL)
+    console.log('[store-service] SUPABASE_URL_HOST:', url.host)
+    console.log('[store-service] SUPABASE_URL_PROTOCOL:', url.protocol)
+  } catch {
+    console.error('[store-service] SUPABASE_URL is invalid:', process.env.SUPABASE_URL)
+  }
+
   client = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY

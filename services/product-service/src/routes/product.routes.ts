@@ -21,6 +21,7 @@ productRoutes.post('/', validateJWT(), async (c) => {
     const product = await productService.create(body)
     return c.json(product, 201)
   } catch (err) {
+    console.error('[PRODUCT ROUTE] POST error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
@@ -34,6 +35,7 @@ productRoutes.get('/', async (c) => {
     const products = await productService.findAllByStore(storeId)
     return c.json(products)
   } catch (err) {
+    console.error('[PRODUCT ROUTE] GET list error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
@@ -48,6 +50,7 @@ productRoutes.get('/:id', async (c) => {
     }
     return c.json(product)
   } catch (err) {
+    console.error('[PRODUCT ROUTE] GET by id error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
@@ -65,6 +68,7 @@ productRoutes.put('/:id', validateJWT(), async (c) => {
 
     return c.json(product)
   } catch (err) {
+    console.error('[PRODUCT ROUTE] PUT error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
@@ -82,6 +86,7 @@ productRoutes.patch('/:id/stock', validateJWT(), async (c) => {
 
     return c.json(product)
   } catch (err) {
+    console.error('[PRODUCT ROUTE] PATCH stock error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
@@ -96,6 +101,7 @@ productRoutes.delete('/:id', validateJWT(), async (c) => {
     }
     return c.json({ message: 'Product deleted successfully' })
   } catch (err) {
+    console.error('[PRODUCT ROUTE] DELETE error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })

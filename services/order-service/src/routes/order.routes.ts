@@ -14,6 +14,7 @@ orderRoutes.post('/', validateJWT(), async (c) => {
     const order = await orderService.create(dto)
     return c.json(order, 201)
   } catch (err) {
+    console.error('[ORDER ROUTE] POST error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
@@ -36,6 +37,7 @@ orderRoutes.get('/', async (c) => {
     const orders = await orderService.findAll()
     return c.json(orders)
   } catch (err) {
+    console.error('[ORDER ROUTE] GET list error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
@@ -50,6 +52,7 @@ orderRoutes.get('/:id', async (c) => {
     }
     return c.json(order)
   } catch (err) {
+    console.error('[ORDER ROUTE] GET by id error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
@@ -67,6 +70,7 @@ orderRoutes.put('/:id', validateJWT(), async (c) => {
 
     return c.json(order)
   } catch (err) {
+    console.error('[ORDER ROUTE] PUT error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
@@ -84,6 +88,7 @@ orderRoutes.patch('/:id/status', validateJWT(), async (c) => {
 
     return c.json(order)
   } catch (err) {
+    console.error('[ORDER ROUTE] PATCH status error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
@@ -95,6 +100,7 @@ orderRoutes.delete('/:id', validateJWT(), async (c) => {
     await orderService.delete(id)
     return c.json({ message: 'Order deleted successfully' })
   } catch (err) {
+    console.error('[ORDER ROUTE] DELETE error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
