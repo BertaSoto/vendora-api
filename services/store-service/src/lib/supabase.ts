@@ -1,4 +1,9 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import ws from 'ws'
+
+if (typeof globalThis.WebSocket === 'undefined') {
+  ;(globalThis as Record<string, unknown>).WebSocket = ws
+}
 
 let client: SupabaseClient | null = null
 
@@ -27,4 +32,3 @@ export const supabase = new Proxy({} as SupabaseClient, {
     return Reflect.apply(getClient() as never, undefined, args)
   },
 })
-

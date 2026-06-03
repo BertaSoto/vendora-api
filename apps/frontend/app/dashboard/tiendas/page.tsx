@@ -1,59 +1,131 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import type { Store } from '../../../src/types'
-
-const MOCK_STORES: Store[] = [
-  { id: 'store-1', name: 'Joyas Maria', status: 'active' },
-  { id: 'store-2', name: 'Tech Store', status: 'active' },
-  { id: 'store-3', name: 'Fashion Plus', status: 'active' },
-]
+import { useState, useEffect, type FormEvent } from 'react'
+import Link from 'next/link'
+import { storesApi } from '../../../src/api/stores'
+import type { Store, CreateStoreDto, UpdateStoreDto } from '../../../src/types'
 
 export default function TiendasPage() {
-  const router = useRouter()
-  const [stores] = useState<Store[]>(MOCK_STORES)
+  const [stores, setStores] = useState<Store[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [form, setForm] = useState({ name: '', description: '' })
+  const [saving, setSaving] = useState(false)
 
-  const statusLabel: Record<Store['status'], string> = {
-    active: 'Activa',
-    inactive: 'Inactiva',
-    suspended: 'Suspendida',
+  useEffect(() => { loadStores() }, [])
+
+  async function loadStores() {
+    setLoading(true)
+    try {
+      const data = await storesApi.list()
+      setStores(data)
+      setError(null)
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const statusStyle: Record<Store['status'], React.CSSProperties> = {
-    active: { backgroundColor: '#d1fae5', color: '#065f46' },
-    inactive: { backgroundColor: '#f1f5f9', color: '#475569' },
-    suspended: { backgroundColor: '#fee2e2', color: '#991b1b' },
+  function resetForm() {
+    setForm({ name: '', description: '' })
+    setEditingId(null)
+    setShowForm(false)
   }
+
+  function startEdit(s: Store) {
+    setForm({ name: s.name, description: s.description ?? '' })
+    setEditingId(s.id)
+    setShowForm(true)
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      if (editingId) {
+        await storesApi.update(editingId, form)
+      } else {
+        const dto: CreateStoreDto = { merchantId: '', name: form.name, description: form.description || undefined }
+        await storesApi.create(dto)
+      }
+      resetForm()
+      await loadStores()
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('¿Eliminar esta tienda?')) return
+    try {
+      await storesApi.remove(id)
+      await loadStores()
+    } catch (err) {
+      setError((err as Error).message)
+    }
+  }
+
+  const statusColor: Record<string, string> = { active: 'var(--color-success)', suspended: 'var(--color-danger)', trial: 'var(--color-warning)' }
 
   return (
-    <div style={styles.container}>
+    <div>
       <div style={styles.header}>
-        <h1 style={styles.heading}>Tiendas</h1>
-        <p style={styles.subtext}>Selecciona una tienda para ver sus productos y órdenes</p>
+        <h1 style={styles.title}>Tiendas</h1>
+        <button onClick={() => setShowForm(!showForm)} style={styles.addBtn}>
+          {showForm ? 'Cancelar' : '+ Nueva tienda'}
+        </button>
       </div>
 
-      {stores.length === 0 && (
-        <p style={styles.state}>No hay tiendas registradas.</p>
+      {error && <p style={styles.error}>Error: {error}</p>}
+
+      {showForm && (
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <input
+            placeholder="Nombre de la tienda"
+            value={form.name}
+            onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+            required
+            minLength={3}
+            style={styles.input}
+          />
+          <input
+            placeholder="Descripción (opcional)"
+            value={form.description}
+            onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
+            style={styles.input}
+          />
+          <button type="submit" disabled={saving} style={styles.saveBtn}>
+            {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
+          </button>
+        </form>
       )}
 
-      {stores.length > 0 && (
+      {loading ? (
+        <p style={styles.muted}>Cargando tiendas...</p>
+      ) : stores.length === 0 ? (
+        <p style={styles.muted}>No hay tiendas. Crea la primera.</p>
+      ) : (
         <div style={styles.grid}>
-          {stores.map(store => (
-            <button
-              key={store.id}
-              onClick={() => router.push(`/dashboard/tiendas/${store.id}`)}
-              style={styles.card}
-            >
-              <div style={styles.cardTop}>
-                <span style={styles.storeName}>{store.name}</span>
-                <span style={{ ...styles.badge, ...statusStyle[store.status] }}>
-                  {statusLabel[store.status]}
+          {stores.map(s => (
+            <div key={s.id} style={styles.card}>
+              <div style={styles.cardHeader}>
+                <Link href={`/dashboard/tiendas/${s.id}`} style={styles.cardName}>{s.name}</Link>
+                <span style={{ ...styles.status, color: statusColor[s.status] || 'var(--color-text-muted)' }}>
+                  {s.status}
                 </span>
               </div>
-              <span style={styles.storeId}>{store.id}</span>
-              <span style={styles.cardAction}>Ver detalles →</span>
-            </button>
+              {s.description && <p style={styles.muted}>{s.description}</p>}
+              <p style={styles.muted}>Slug: {s.slug}</p>
+              <div style={styles.cardActions}>
+                <button onClick={() => startEdit(s)} style={styles.editBtn}>Editar</button>
+                <button onClick={() => handleDelete(s.id)} style={styles.deleteBtn}>Eliminar</button>
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -62,76 +134,78 @@ export default function TiendasPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: {
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
+  title: { fontSize: '1.5rem', fontWeight: 700 },
+  addBtn: {
+    padding: '8px 16px',
+    borderRadius: 'var(--radius)',
+    backgroundColor: 'var(--color-primary)',
+    color: 'white',
+    border: 'none',
+    fontSize: '0.9rem',
+    cursor: 'pointer',
+    fontWeight: 600,
+  },
+  form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '24px',
-  },
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-  },
-  heading: {
-    fontSize: '1.5rem',
-    fontWeight: 700,
-    color: 'var(--color-text)',
-  },
-  subtext: {
-    fontSize: '0.875rem',
-    color: 'var(--color-text-muted)',
-  },
-  state: {
-    fontSize: '0.875rem',
-    color: 'var(--color-text-muted)',
-    padding: '24px 0',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-    gap: '16px',
-  },
-  card: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    padding: '20px',
+    gap: '10px',
+    padding: '16px',
     backgroundColor: 'var(--color-surface)',
     border: '1px solid var(--color-border)',
     borderRadius: 'var(--radius)',
-    boxShadow: 'var(--shadow)',
-    cursor: 'pointer',
-    textAlign: 'left',
-    transition: 'border-color 0.15s, box-shadow 0.15s',
+    marginBottom: '20px',
+    maxWidth: '480px',
   },
-  cardTop: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '8px',
-  },
-  storeName: {
-    fontSize: '1rem',
-    fontWeight: 600,
+  input: {
+    padding: '8px 12px',
+    borderRadius: 'var(--radius)',
+    border: '1px solid var(--color-border)',
+    fontSize: '0.9rem',
+    outline: 'none',
+    backgroundColor: 'var(--color-bg)',
     color: 'var(--color-text)',
   },
-  badge: {
-    display: 'inline-block',
-    padding: '2px 8px',
-    borderRadius: '9999px',
-    fontSize: '0.75rem',
+  saveBtn: {
+    padding: '8px 16px',
+    borderRadius: 'var(--radius)',
+    backgroundColor: 'var(--color-success)',
+    color: 'white',
+    border: 'none',
+    fontSize: '0.9rem',
+    cursor: 'pointer',
     fontWeight: 600,
-    flexShrink: 0,
   },
-  storeId: {
-    fontSize: '0.75rem',
-    fontFamily: 'monospace',
-    color: 'var(--color-text-muted)',
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' },
+  card: {
+    backgroundColor: 'var(--color-surface)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius)',
+    padding: '16px',
+    boxShadow: 'var(--shadow)',
   },
-  cardAction: {
-    fontSize: '0.8rem',
-    fontWeight: 500,
+  cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' },
+  cardName: { fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' },
+  status: { fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase' },
+  cardActions: { display: 'flex', gap: '8px', marginTop: '12px' },
+  editBtn: {
+    padding: '4px 12px',
+    borderRadius: 'var(--radius)',
+    border: '1px solid var(--color-primary)',
+    backgroundColor: 'transparent',
     color: 'var(--color-primary)',
-    marginTop: '4px',
+    fontSize: '0.8rem',
+    cursor: 'pointer',
   },
+  deleteBtn: {
+    padding: '4px 12px',
+    borderRadius: 'var(--radius)',
+    border: '1px solid var(--color-danger)',
+    backgroundColor: 'transparent',
+    color: 'var(--color-danger)',
+    fontSize: '0.8rem',
+    cursor: 'pointer',
+  },
+  error: { color: 'var(--color-danger)', fontSize: '0.9rem', marginBottom: '12px' },
+  muted: { color: 'var(--color-text-muted)', fontSize: '0.85rem', marginBottom: '4px' },
 }

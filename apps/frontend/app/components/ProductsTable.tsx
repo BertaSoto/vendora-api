@@ -12,7 +12,7 @@ export default function ProductsTable({ storeId }: { storeId: string }) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    productsApi.list(storeId)
+    productsApi.listByStore(storeId)
       .then(setProducts)
       .catch(err => setError(err instanceof Error ? err.message : 'Error al cargar productos'))
       .finally(() => setIsLoading(false))

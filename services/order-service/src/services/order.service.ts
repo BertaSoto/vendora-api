@@ -112,6 +112,25 @@ export class OrderService {
     return rowToOrder(data)
   }
 
+  async updateStatus(id: string, status: string): Promise<OrderResponseDto | null> {
+    if (!id) throw new Error('id is required')
+
+    const validStatuses = ['pending', 'confirmed', 'delivered', 'cancelled']
+    if (!validStatuses.includes(status)) {
+      throw new Error(`status must be one of: ${validStatuses.join(', ')}`)
+    }
+
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single<OrderRow>()
+
+    if (error) return null
+    return rowToOrder(data)
+  }
+
   async delete(id: string): Promise<boolean> {
     if (!id) throw new Error('id is required')
 

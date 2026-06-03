@@ -1,9 +1,15 @@
 export type OrderStatus = 'pending' | 'confirmed' | 'delivered' | 'cancelled'
+export type StoreStatus = 'active' | 'suspended' | 'trial'
 
 export interface Store {
   id: string
+  merchantId: string
   name: string
-  status: 'active' | 'inactive' | 'suspended'
+  slug: string
+  description: string | null
+  status: StoreStatus
+  createdAt: string
+  updatedAt: string
 }
 
 export interface DashboardSummary {
@@ -13,7 +19,11 @@ export interface DashboardSummary {
 }
 
 export interface DashboardResponse {
-  store: Store
+  store: {
+    id: string
+    name: string
+    status: string
+  }
   summary: DashboardSummary
 }
 
@@ -36,36 +46,48 @@ export interface CreateProductDto {
   stock: number
 }
 
+export interface UpdateProductDto {
+  name?: string
+  description?: string
+  price?: number
+  stock?: number
+}
+
 export interface UpdateStockDto {
   stock: number
 }
 
-export interface OrderItem {
-  productId: string
-  productName: string
-  quantity: number
-  unitPrice: number
-}
-
 export interface Order {
   id: string
+  userId: string
   storeId: string
-  customerName: string
-  items: OrderItem[]
+  productId: string
+  productName: string | null
+  quantity: number
   total: number
   status: OrderStatus
   createdAt: string
-}
-
-export interface CreateOrderItemDto {
-  productId: string
-  productName: string
-  quantity: number
-  unitPrice: number
+  updatedAt: string
 }
 
 export interface CreateOrderDto {
   storeId: string
-  customerName: string
-  items: CreateOrderItemDto[]
+  productId: string
+  quantity: number
+}
+
+export interface UpdateOrderStatusDto {
+  status: OrderStatus
+}
+
+export interface CreateStoreDto {
+  merchantId: string
+  name: string
+  description?: string
+}
+
+export interface UpdateStoreDto {
+  name?: string
+  description?: string
+  status?: StoreStatus
 }

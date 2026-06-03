@@ -27,7 +27,7 @@ export default function OrdersTable({ storeId }: { storeId: string }) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    ordersApi.list(storeId)
+    ordersApi.listByStore(storeId)
       .then(setOrders)
       .catch(err => setError(err instanceof Error ? err.message : 'Error al cargar órdenes'))
       .finally(() => setIsLoading(false))
@@ -63,7 +63,7 @@ export default function OrdersTable({ storeId }: { storeId: string }) {
                   <td style={styles.td}>
                     <span style={styles.orderId}>{o.id.slice(0, 8)}…</span>
                   </td>
-                  <td style={styles.td}>{o.customerName}</td>
+                  <td style={styles.td}>{o.userId}</td>
                   <td style={styles.td}>
                     <span style={{ ...styles.badge, ...STATUS_STYLE[o.status] }}>
                       {STATUS_LABEL[o.status]}
