@@ -10,6 +10,7 @@
     "test": "echo test-order-service"
   },
   "dependencies": {
+    "@hono/node-server": "^1.13.0",
     "@supabase/supabase-js": "^2.105.4",
     "@vendora/auth-middleware": "workspace:*",
     "hono": "^4.12.8",
