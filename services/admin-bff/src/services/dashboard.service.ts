@@ -6,7 +6,7 @@ const LOW_STOCK_THRESHOLD = 5
 export class DashboardService {
   private async fetchStore(storeId: string): Promise<Store> {
     const { data, error } = await supabase
-      .from('stores')
+      .from('Store')
       .select('id, name, status')
       .eq('id', storeId)
       .single<{ id: string; name: string; status: string }>()
@@ -24,7 +24,7 @@ export class DashboardService {
 
   private async fetchProductSummary(storeId: string): Promise<DashboardSummary> {
     const { data, error } = await supabase
-      .from('products')
+      .from('Product')
       .select('stock')
       .eq('store_id', storeId)
 
@@ -37,7 +37,7 @@ export class DashboardService {
     const lowStockProducts = products.filter(p => p.stock < LOW_STOCK_THRESHOLD).length
 
     const { count: pendingOrders, error: orderError } = await supabase
-      .from('orders')
+      .from('Order')
       .select('id', { count: 'exact', head: true })
       .eq('store_id', storeId)
       .eq('status', 'pending')

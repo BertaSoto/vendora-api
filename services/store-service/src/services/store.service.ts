@@ -19,9 +19,9 @@ export class StoreService {
     const slug = slugify(dto.name)
 
     const { data, error } = await supabase
-      .from('stores')
+      .from('Store')
       .insert({
-        merchant_id: dto.merchantId,
+        merchantId: dto.merchantId,
         name: dto.name,
         slug,
         description: dto.description ?? null,
@@ -44,7 +44,7 @@ export class StoreService {
     if (!id) throw new Error('id is required')
 
     const { data, error } = await supabase
-      .from('stores')
+      .from('Store')
       .select()
       .eq('id', id)
       .single<StoreRow>()
@@ -57,7 +57,7 @@ export class StoreService {
     if (!slug) throw new Error('slug is required')
 
     const { data, error } = await supabase
-      .from('stores')
+      .from('Store')
       .select()
       .eq('slug', slug)
       .single<StoreRow>()
@@ -70,10 +70,10 @@ export class StoreService {
     if (!merchantId) throw new Error('merchantId is required')
 
     const { data, error } = await supabase
-      .from('stores')
+      .from('Store')
       .select()
-      .eq('merchant_id', merchantId)
-      .order('created_at', { ascending: false })
+      .eq('merchantId', merchantId)
+      .order('createdAt', { ascending: false })
 
     if (error) throw new Error(error.message)
     return (data as StoreRow[]).map(rowToStore)
@@ -81,9 +81,9 @@ export class StoreService {
 
   async findAll(): Promise<StoreResponseDto[]> {
     const { data, error } = await supabase
-      .from('stores')
+      .from('Store')
       .select()
-      .order('created_at', { ascending: false })
+      .order('createdAt', { ascending: false })
 
     if (error) throw new Error(error.message)
     return (data as StoreRow[]).map(rowToStore)
@@ -102,7 +102,7 @@ export class StoreService {
     }
 
     const { data, error } = await supabase
-      .from('stores')
+      .from('Store')
       .update(updates)
       .eq('id', id)
       .select()
@@ -116,7 +116,7 @@ export class StoreService {
     if (!id) throw new Error('id is required')
 
     const { error } = await supabase
-      .from('stores')
+      .from('Store')
       .delete()
       .eq('id', id)
 
