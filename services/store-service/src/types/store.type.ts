@@ -13,24 +13,24 @@ export interface Store {
 
 export interface StoreRow {
   id: string
-  merchant_id: string
+  merchantId: string
   name: string
   slug: string
   description: string | null
   status: StoreStatus
-  created_at: string
-  updated_at: string
+  createdAt: string
+  updatedAt: string
 }
 
 export function rowToStore(row: StoreRow): Store {
   return {
     id: row.id,
-    merchantId: row.merchant_id,
+    merchantId: row.merchantId,
     name: row.name,
     slug: row.slug,
     description: row.description,
     status: row.status,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
   }
 }
