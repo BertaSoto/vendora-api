@@ -14,6 +14,7 @@ storeRoutes.post('/', validateJWT(), async (c) => {
     const store = await storeService.create(dto)
     return c.json(store, 201)
   } catch (err) {
+    console.error('[STORE ROUTE] POST error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
@@ -30,6 +31,7 @@ storeRoutes.get('/', async (c) => {
     const stores = await storeService.findAll()
     return c.json(stores)
   } catch (err) {
+    console.error('[STORE ROUTE] GET list error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
@@ -48,6 +50,7 @@ storeRoutes.get('/:idOrSlug', async (c) => {
 
     return c.json(store)
   } catch (err) {
+    console.error('[STORE ROUTE] GET by id/slug error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
@@ -65,6 +68,7 @@ storeRoutes.put('/:id', validateJWT(), async (c) => {
 
     return c.json(store)
   } catch (err) {
+    console.error('[STORE ROUTE] PUT error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
@@ -82,6 +86,7 @@ storeRoutes.patch('/:id', validateJWT(), async (c) => {
 
     return c.json(store)
   } catch (err) {
+    console.error('[STORE ROUTE] PATCH error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
@@ -93,6 +98,7 @@ storeRoutes.delete('/:id', validateJWT(), async (c) => {
     await storeService.delete(id)
     return c.json({ message: 'Store deleted successfully' })
   } catch (err) {
+    console.error('[STORE ROUTE] DELETE error:', err)
     return c.json({ error: (err as Error).message }, 400)
   }
 })
