@@ -8,7 +8,7 @@ export class OrderService {
     this.validateCreateDto(dto)
 
     const { data: product, error: productError } = await supabase
-      .from('products')
+      .from('Product')
       .select('name, price')
       .eq('id', dto.productId)
       .single<{ name: string; price: number }>()
@@ -20,7 +20,7 @@ export class OrderService {
     const total = product.price * dto.quantity
 
     const { data, error } = await supabase
-      .from('orders')
+      .from('Order')
       .insert({
         user_id: dto.userId,
         store_id: dto.storeId,
@@ -44,7 +44,7 @@ export class OrderService {
     if (!id) throw new Error('id is required')
 
     const { data, error } = await supabase
-      .from('orders')
+      .from('Order')
       .select()
       .eq('id', id)
       .single<OrderRow>()
@@ -55,7 +55,7 @@ export class OrderService {
 
   async findAll(): Promise<OrderResponseDto[]> {
     const { data, error } = await supabase
-      .from('orders')
+      .from('Order')
       .select()
       .order('created_at', { ascending: false })
 
@@ -67,7 +67,7 @@ export class OrderService {
     if (!userId) throw new Error('userId is required')
 
     const { data, error } = await supabase
-      .from('orders')
+      .from('Order')
       .select()
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -80,7 +80,7 @@ export class OrderService {
     if (!storeId) throw new Error('storeId is required')
 
     const { data, error } = await supabase
-      .from('orders')
+      .from('Order')
       .select()
       .eq('store_id', storeId)
       .order('created_at', { ascending: false })
@@ -102,7 +102,7 @@ export class OrderService {
     }
 
     const { data, error } = await supabase
-      .from('orders')
+      .from('Order')
       .update({ status: dto.status })
       .eq('id', id)
       .select()
@@ -121,7 +121,7 @@ export class OrderService {
     }
 
     const { data, error } = await supabase
-      .from('orders')
+      .from('Order')
       .update({ status })
       .eq('id', id)
       .select()
@@ -135,7 +135,7 @@ export class OrderService {
     if (!id) throw new Error('id is required')
 
     const { error } = await supabase
-      .from('orders')
+      .from('Order')
       .delete()
       .eq('id', id)
 

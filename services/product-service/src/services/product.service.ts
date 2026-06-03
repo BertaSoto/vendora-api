@@ -8,7 +8,7 @@ export class ProductService {
     this.validateCreateDto(dto)
 
     const { data, error } = await supabase
-      .from('products')
+      .from('Product')
       .insert({
         store_id: dto.storeId,
         name: dto.name,
@@ -33,7 +33,7 @@ export class ProductService {
     if (!id) throw new Error('id is required')
 
     const { data, error } = await supabase
-      .from('products')
+      .from('Product')
       .select()
       .eq('id', id)
       .single<ProductRow>()
@@ -46,7 +46,7 @@ export class ProductService {
     if (!storeId) throw new Error('storeId is required')
 
     const { data, error } = await supabase
-      .from('products')
+      .from('Product')
       .select()
       .eq('store_id', storeId)
       .order('created_at', { ascending: false })
@@ -79,7 +79,7 @@ export class ProductService {
     }
 
     const { data, error } = await supabase
-      .from('products')
+      .from('Product')
       .update(updates)
       .eq('id', id)
       .select()
@@ -93,7 +93,7 @@ export class ProductService {
     if (!id) throw new Error('id is required')
 
     const { error } = await supabase
-      .from('products')
+      .from('Product')
       .delete()
       .eq('id', id)
 
@@ -108,7 +108,7 @@ export class ProductService {
     }
 
     const { data, error } = await supabase
-      .from('products')
+      .from('Product')
       .update({ stock })
       .eq('id', id)
       .select()
