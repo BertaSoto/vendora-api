@@ -31,6 +31,7 @@ export class StoreService {
       .single<StoreRow>()
 
     if (error) {
+      console.error('[SUPABASE STORE] create error:', error)
       if (error.code === '23505') {
         throw new Error(`A store with the name "${dto.name}" already exists.`)
       }

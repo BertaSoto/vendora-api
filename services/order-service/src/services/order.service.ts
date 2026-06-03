@@ -14,6 +14,7 @@ export class OrderService {
       .single<{ name: string; price: number }>()
 
     if (productError || !product) {
+      console.error('[SUPABASE ORDER] product lookup error:', productError)
       throw new Error('Product not found')
     }
 
@@ -34,6 +35,7 @@ export class OrderService {
       .single<OrderRow>()
 
     if (error) {
+      console.error('[SUPABASE ORDER] create error:', error)
       throw new Error(error.message)
     }
 
@@ -59,7 +61,10 @@ export class OrderService {
       .select()
       .order('created_at', { ascending: false })
 
-    if (error) throw new Error(error.message)
+    if (error) {
+      console.error('[SUPABASE ORDER] findAll error:', error)
+      throw new Error(error.message)
+    }
     return (data as OrderRow[]).map(rowToOrder)
   }
 
