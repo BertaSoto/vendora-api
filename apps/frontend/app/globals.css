@@ -27,3 +27,11 @@ body {
   color: var(--color-text);
   min-height: 100vh;
 }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -1,17 +1,22 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type CSSProperties } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '../../../src/hooks/useAuth'
 
 export default function LoginPage() {
+  const router = useRouter()
   const { login, isLoading, error, clearError } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    await login({ email, password })
+    const success = await login({ email, password })
+    if (success) {
+      router.push('/dashboard')
+    }
   }
 
   return (
@@ -25,19 +30,28 @@ export default function LoginPage() {
             type="email"
             placeholder="Correo electrónico"
             value={email}
-            onChange={(e) => { setEmail(e.target.value); clearError() }}
+            onChange={(e) => {
+              setEmail(e.target.value)
+              clearError()
+            }}
             required
             style={styles.input}
           />
+
           <input
             type="password"
             placeholder="Contraseña"
             value={password}
-            onChange={(e) => { setPassword(e.target.value); clearError() }}
+            onChange={(e) => {
+              setPassword(e.target.value)
+              clearError()
+            }}
             required
             style={styles.input}
           />
+
           {error && <p style={styles.error}>{error}</p>}
+
           <button type="submit" disabled={isLoading} style={styles.button}>
             {isLoading ? 'Ingresando...' : 'Iniciar sesión'}
           </button>
@@ -54,7 +68,7 @@ export default function LoginPage() {
   )
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, CSSProperties> = {
   main: {
     display: 'flex',
     alignItems: 'center',

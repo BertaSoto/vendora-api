@@ -1,12 +1,12 @@
 import { apiFetch } from './client'
 
-interface RegisterDto {
+export interface RegisterDto {
   email: string
   password: string
   fullName: string
 }
 
-interface RegisterResponse {
+export interface RegisterResponse {
   success: boolean
   data?: {
     user: {

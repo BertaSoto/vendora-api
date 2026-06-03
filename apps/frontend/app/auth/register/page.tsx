@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { authApi } from '../../../src/api/auth'
@@ -24,6 +24,7 @@ export default function RegisterPage() {
     }
 
     setIsLoading(true)
+
     try {
       await authApi.register({ email, password, fullName })
       router.push('/auth/login')
@@ -50,6 +51,7 @@ export default function RegisterPage() {
             required
             style={styles.input}
           />
+
           <input
             type="email"
             placeholder="Correo electrónico"
@@ -58,6 +60,7 @@ export default function RegisterPage() {
             required
             style={styles.input}
           />
+
           <input
             type="password"
             placeholder="Contraseña"
@@ -66,6 +69,7 @@ export default function RegisterPage() {
             required
             style={styles.input}
           />
+
           <input
             type="password"
             placeholder="Confirmar contraseña"
@@ -74,7 +78,9 @@ export default function RegisterPage() {
             required
             style={styles.input}
           />
+
           {error && <p style={styles.error}>{error}</p>}
+
           <button type="submit" disabled={isLoading} style={styles.button}>
             {isLoading ? 'Creando cuenta...' : 'Registrarse'}
           </button>
@@ -91,7 +97,7 @@ export default function RegisterPage() {
   )
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, CSSProperties> = {
   main: {
     display: 'flex',
     alignItems: 'center',
