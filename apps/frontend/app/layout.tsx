@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Toaster } from 'sonner'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -14,7 +15,21 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        {children}
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              borderRadius: '0.75rem',
+              border: '1px solid #e2e8f0',
+              background: '#fff',
+              color: '#1e293b',
+              fontSize: '0.875rem',
+            },
+          }}
+        />
+      </body>
     </html>
   )
 }

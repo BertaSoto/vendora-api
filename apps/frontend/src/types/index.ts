@@ -1,5 +1,5 @@
 export type OrderStatus = 'pending' | 'confirmed' | 'delivered' | 'cancelled'
-export type StoreStatus = 'active' | 'suspended' | 'trial'
+export type StoreStatus = 'ACTIVE' | 'SUSPENDED' | 'TRIAL'
 
 export interface Store {
   id: string
@@ -81,7 +81,6 @@ export interface UpdateOrderStatusDto {
 }
 
 export interface CreateStoreDto {
-  merchantId: string
   name: string
   description?: string
 }

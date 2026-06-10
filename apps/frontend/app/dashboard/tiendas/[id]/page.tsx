@@ -3,10 +3,22 @@
 import { useState, useEffect, type FormEvent } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { storesApi } from '../../../../src/api/stores'
-import { productsApi } from '../../../../src/api/products'
-import { ordersApi } from '../../../../src/api/orders'
-import type { Store, Product, Order } from '../../../../src/types'
+import { toast } from 'sonner'
+import { ArrowLeft, Plus, X } from 'lucide-react'
+import { storesApi } from '@/api/stores'
+import { productsApi } from '@/api/products'
+import { ordersApi } from '@/api/orders'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card } from '@/components/ui/card'
+import { Badge, statusBadgeVariant, statusLabel } from '@/components/ui/badge'
+import { ProductCard } from '@/components/product-card'
+import { OrdersTable } from '@/components/orders-table'
+import { CardSkeleton, TableSkeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
+import { ErrorState } from '@/components/ui/error-state'
+import { ConfirmModal } from '@/components/ui/modal'
+import type { Store, Product, Order, OrderStatus } from '@/types'
 
 export default function TiendaDetailPage() {
   const params = useParams<{ id: string }>()
@@ -22,12 +34,21 @@ export default function TiendaDetailPage() {
 
   const [showProductForm, setShowProductForm] = useState(false)
   const [editingProductId, setEditingProductId] = useState<string | null>(null)
-  const [productForm, setProductForm] = useState({ name: '', description: '', price: '', stock: '' })
+  const [productForm, setProductForm] = useState({
+    name: '',
+    description: '',
+    price: '',
+    stock: '',
+  })
   const [saving, setSaving] = useState(false)
 
-  const [editingOrderStatus, setEditingOrderStatus] = useState<string | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [deleteType, setDeleteType] = useState<'product' | 'order'>('product')
+  const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => { loadData() }, [storeId])
+  useEffect(() => {
+    loadData()
+  }, [storeId])
 
   async function loadData() {
     setLoading(true)
@@ -55,7 +76,12 @@ export default function TiendaDetailPage() {
   }
 
   function startEditProduct(p: Product) {
-    setProductForm({ name: p.name, description: p.description, price: String(p.price), stock: String(p.stock) })
+    setProductForm({
+      name: p.name,
+      description: p.description,
+      price: String(p.price),
+      stock: String(p.stock),
+    })
     setEditingProductId(p.id)
     setShowProductForm(true)
   }
@@ -72,128 +98,229 @@ export default function TiendaDetailPage() {
       }
       if (editingProductId) {
         await productsApi.update(editingProductId, dto)
+        toast.success('Producto actualizado')
       } else {
         await productsApi.create({ ...dto, storeId })
+        toast.success('Producto creado')
       }
       resetProductForm()
       await loadData()
     } catch (err) {
-      setError((err as Error).message)
+      toast.error((err as Error).message)
     } finally {
       setSaving(false)
     }
   }
 
-  async function handleUpdateStock(productId: string, newStock: number) {
+  async function handleUpdateStock(productId: string, currentStock: number) {
+    const newStock = prompt('Nuevo stock:', String(currentStock))
+    if (newStock === null || isNaN(Number(newStock)) || Number(newStock) < 0) return
     try {
-      await productsApi.updateStock(productId, { stock: newStock })
+      await productsApi.updateStock(productId, { stock: Number(newStock) })
+      toast.success('Stock actualizado')
       await loadData()
     } catch (err) {
-      setError((err as Error).message)
-    }
-  }
-
-  async function handleDeleteProduct(id: string) {
-    if (!confirm('¿Eliminar este producto?')) return
-    try {
-      await productsApi.remove(id)
-      await loadData()
-    } catch (err) {
-      setError((err as Error).message)
+      toast.error((err as Error).message)
     }
   }
 
   async function handleCreateOrder(productId: string) {
-    setError(null)
     const qty = prompt('Cantidad:', '1')
     if (!qty || isNaN(Number(qty)) || Number(qty) < 1) return
     try {
       await ordersApi.create({ storeId, productId, quantity: Number(qty) })
+      toast.success('Orden creada')
       await loadData()
     } catch (err) {
-      setError((err as Error).message)
+      toast.error((err as Error).message)
     }
   }
 
   async function handleUpdateOrderStatus(orderId: string, status: string) {
     try {
-      await ordersApi.updateStatus(orderId, { status: status as Order['status'] })
-      setEditingOrderStatus(null)
+      await ordersApi.updateStatus(orderId, {
+        status: status as OrderStatus,
+      })
+      toast.success('Estado actualizado')
       await loadData()
     } catch (err) {
-      setError((err as Error).message)
+      toast.error((err as Error).message)
     }
   }
 
-  async function handleDeleteOrder(id: string) {
-    if (!confirm('¿Eliminar esta orden?')) return
+  async function handleDelete() {
+    if (!deleteId) return
+    setDeleting(true)
     try {
-      await ordersApi.remove(id)
+      if (deleteType === 'product') await productsApi.remove(deleteId)
+      else await ordersApi.remove(deleteId)
+      toast.success(deleteType === 'product' ? 'Producto eliminado' : 'Orden eliminada')
       await loadData()
     } catch (err) {
-      setError((err as Error).message)
+      toast.error((err as Error).message)
+    } finally {
+      setDeleting(false)
+      setDeleteId(null)
     }
   }
 
-  const statusColor: Record<string, string> = { active: 'var(--color-success)', suspended: 'var(--color-danger)', trial: 'var(--color-warning)' }
-  const orderStatusColor: Record<string, string> = { pending: 'var(--color-warning)', confirmed: '#6366f1', delivered: 'var(--color-success)', cancelled: 'var(--color-danger)' }
+  if (loading) {
+    return (
+      <div>
+        <CardSkeleton />
+        <div className="mt-6">
+          <TableSkeleton rows={4} />
+        </div>
+      </div>
+    )
+  }
 
-  if (loading) return <p style={styles.muted}>Cargando...</p>
-  if (error) return <p style={styles.error}>Error: {error}</p>
-  if (!store) return <p style={styles.muted}>Tienda no encontrada</p>
+  if (error) return <ErrorState message={error} onRetry={loadData} />
+  if (!store) return <ErrorState message="Tienda no encontrada" />
 
   return (
     <div>
-      <Link href="/dashboard/tiendas" style={styles.backLink}>← Volver a tiendas</Link>
+      <Link
+        href="/dashboard/tiendas"
+        className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-brand-600 transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Volver a tiendas
+      </Link>
 
-      <div style={styles.storeHeader}>
-        <h1 style={styles.title}>{store.name}</h1>
-        <span style={{ ...styles.status, color: statusColor[store.status] || 'var(--color-text-muted)' }}>{store.status}</span>
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">{store.name}</h1>
+          {store.description && (
+            <p className="mt-1 text-sm text-slate-500">{store.description}</p>
+          )}
+        </div>
+        <Badge variant={statusBadgeVariant(store.status)}>
+          {statusLabel(store.status)}
+        </Badge>
       </div>
-      {store.description && <p style={styles.muted}>{store.description}</p>}
-      <p style={styles.muted}>Slug: {store.slug}</p>
+      <p className="-mt-4 mb-6 text-xs text-slate-400 font-mono">Slug: {store.slug}</p>
 
-      <div style={styles.tabs}>
-        <button onClick={() => setTab('products')} style={tabStyle(tab === 'products')}>
+      <div className="mb-6 flex border-b border-slate-200">
+        <button
+          onClick={() => setTab('products')}
+          className={`px-5 py-3 text-sm font-semibold border-b-2 transition-colors ${
+            tab === 'products'
+              ? 'border-brand-600 text-brand-700'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
+          }`}
+        >
           Productos ({products.length})
         </button>
-        <button onClick={() => setTab('orders')} style={tabStyle(tab === 'orders')}>
+        <button
+          onClick={() => setTab('orders')}
+          className={`px-5 py-3 text-sm font-semibold border-b-2 transition-colors ${
+            tab === 'orders'
+              ? 'border-brand-600 text-brand-700'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
+          }`}
+        >
           Órdenes ({orders.length})
         </button>
       </div>
 
       {tab === 'products' && (
         <div>
-          <button onClick={() => setShowProductForm(!showProductForm)} style={styles.addBtn}>
-            {showProductForm ? 'Cancelar' : '+ Nuevo producto'}
-          </button>
+          <div className="mb-4">
+            <Button onClick={() => setShowProductForm(!showProductForm)}>
+              {showProductForm ? (
+                <>
+                  <X className="h-4 w-4" /> Cancelar
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" /> Nuevo producto
+                </>
+              )}
+            </Button>
+          </div>
 
           {showProductForm && (
-            <form onSubmit={handleProductSubmit} style={styles.form}>
-              <input placeholder="Nombre" value={productForm.name} onChange={e => setProductForm(p => ({ ...p, name: e.target.value }))} required style={styles.input} />
-              <input placeholder="Descripción" value={productForm.description} onChange={e => setProductForm(p => ({ ...p, description: e.target.value }))} style={styles.input} />
-              <input placeholder="Precio" type="number" min="0" step="0.01" value={productForm.price} onChange={e => setProductForm(p => ({ ...p, price: e.target.value }))} required style={styles.input} />
-              <input placeholder="Stock" type="number" min="0" value={productForm.stock} onChange={e => setProductForm(p => ({ ...p, stock: e.target.value }))} required style={styles.input} />
-              <button type="submit" disabled={saving} style={styles.saveBtn}>{saving ? 'Guardando...' : editingProductId ? 'Actualizar' : 'Crear'}</button>
-            </form>
+            <Card className="mb-6">
+              <form onSubmit={handleProductSubmit} className="flex flex-col gap-4">
+                <h2 className="text-sm font-semibold text-slate-700">
+                  {editingProductId ? 'Editar producto' : 'Nuevo producto'}
+                </h2>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Input
+                    placeholder="Nombre"
+                    value={productForm.name}
+                    onChange={(e) =>
+                      setProductForm((p) => ({ ...p, name: e.target.value }))
+                    }
+                    required
+                  />
+                  <Input
+                    placeholder="Descripción"
+                    value={productForm.description}
+                    onChange={(e) =>
+                      setProductForm((p) => ({ ...p, description: e.target.value }))
+                    }
+                  />
+                  <Input
+                    placeholder="Precio"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={productForm.price}
+                    onChange={(e) =>
+                      setProductForm((p) => ({ ...p, price: e.target.value }))
+                    }
+                    required
+                  />
+                  <Input
+                    placeholder="Stock"
+                    type="number"
+                    min="0"
+                    value={productForm.stock}
+                    onChange={(e) =>
+                      setProductForm((p) => ({ ...p, stock: e.target.value }))
+                    }
+                    required
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={saving}>
+                    {saving
+                      ? 'Guardando...'
+                      : editingProductId
+                        ? 'Actualizar'
+                        : 'Crear'}
+                  </Button>
+                </div>
+              </form>
+            </Card>
           )}
 
           {products.length === 0 ? (
-            <p style={styles.muted}>No hay productos.</p>
+            <EmptyState
+              title="No hay productos"
+              description="Crea tu primer producto en esta tienda."
+              action={
+                <Button onClick={() => setShowProductForm(true)}>
+                  <Plus className="h-4 w-4" /> Nuevo producto
+                </Button>
+              }
+            />
           ) : (
-            <div style={styles.grid}>
-              {products.map(p => (
-                <div key={p.id} style={styles.cardSmall}>
-                  <p style={styles.cardName}>{p.name}</p>
-                  <p style={styles.muted}>{p.description || 'Sin descripción'}</p>
-                  <p>${p.price} — Stock: {p.stock}</p>
-                  <div style={styles.cardActions}>
-                    <button onClick={() => startEditProduct(p)} style={styles.editBtn}>Editar</button>
-                    <button onClick={() => handleUpdateStock(p.id, p.stock)} style={styles.stockBtn}>Cambiar stock</button>
-                    <button onClick={() => handleCreateOrder(p.id)} style={styles.orderBtn}>Crear orden</button>
-                    <button onClick={() => handleDeleteProduct(p.id)} style={styles.deleteBtn}>Eliminar</button>
-                  </div>
-                </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {products.map((p) => (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  onEdit={startEditProduct}
+                  onDelete={(id) => {
+                    setDeleteId(id)
+                    setDeleteType('product')
+                  }}
+                  onUpdateStock={handleUpdateStock}
+                  onCreateOrder={handleCreateOrder}
+                />
               ))}
             </div>
           )}
@@ -203,162 +330,32 @@ export default function TiendaDetailPage() {
       {tab === 'orders' && (
         <div>
           {orders.length === 0 ? (
-            <p style={styles.muted}>No hay órdenes.</p>
+            <EmptyState
+              title="No hay órdenes"
+              description="Crea productos y genera órdenes desde la pestaña de productos."
+            />
           ) : (
-            <div style={styles.grid}>
-              {orders.map(o => (
-                <div key={o.id} style={styles.cardSmall}>
-                  <p style={styles.cardName}>{o.productName || 'Producto'} x{o.quantity}</p>
-                  <p style={styles.muted}>Total: ${o.total}</p>
-                  <span style={{ ...styles.statusBadge, color: orderStatusColor[o.status] || 'var(--color-text-muted)' }}>{o.status}</span>
-                  <div style={styles.cardActions}>
-                    {editingOrderStatus === o.id ? (
-                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                        {['pending', 'confirmed', 'delivered', 'cancelled'].map(s => (
-                          <button key={s} onClick={() => handleUpdateOrderStatus(o.id, s)} style={styles.smallBtn}>{s}</button>
-                        ))}
-                        <button onClick={() => setEditingOrderStatus(null)} style={styles.mutedBtn}>x</button>
-                      </div>
-                    ) : (
-                      <button onClick={() => setEditingOrderStatus(o.id)} style={styles.stockBtn}>Cambiar estado</button>
-                    )}
-                    <button onClick={() => handleDeleteOrder(o.id)} style={styles.deleteBtn}>Eliminar</button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <OrdersTable
+              orders={orders}
+              onDelete={(id) => {
+                setDeleteId(id)
+                setDeleteType('order')
+              }}
+              onUpdateStatus={handleUpdateOrderStatus}
+            />
           )}
         </div>
       )}
+
+      <ConfirmModal
+        open={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDelete}
+        title={deleteType === 'product' ? 'Eliminar producto' : 'Eliminar orden'}
+        description="¿Estás seguro? Esta acción no se puede deshacer."
+        confirmLabel={deleteType === 'product' ? 'Eliminar producto' : 'Eliminar orden'}
+        loading={deleting}
+      />
     </div>
   )
-}
-
-function tabStyle(active: boolean): React.CSSProperties {
-  return {
-    padding: '8px 20px',
-    border: 'none',
-    borderBottom: active ? '2px solid var(--color-primary)' : '2px solid transparent',
-    backgroundColor: 'transparent',
-    color: active ? 'var(--color-primary)' : 'var(--color-text-muted)',
-    fontSize: '0.9rem',
-    fontWeight: active ? 600 : 400,
-    cursor: 'pointer',
-  }
-}
-
-const styles: Record<string, React.CSSProperties> = {
-  backLink: { color: 'var(--color-primary)', textDecoration: 'none', fontSize: '0.9rem', marginBottom: '12px', display: 'inline-block' },
-  storeHeader: { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' },
-  title: { fontSize: '1.5rem', fontWeight: 700 },
-  status: { fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase' },
-  statusBadge: { fontSize: '0.8rem', fontWeight: 600 },
-  tabs: { display: 'flex', gap: '0', borderBottom: '1px solid var(--color-border)', margin: '20px 0 16px' },
-  addBtn: {
-    padding: '6px 14px',
-    borderRadius: 'var(--radius)',
-    backgroundColor: 'var(--color-primary)',
-    color: 'white',
-    border: 'none',
-    fontSize: '0.85rem',
-    cursor: 'pointer',
-    fontWeight: 600,
-    marginBottom: '12px',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    padding: '14px',
-    backgroundColor: 'var(--color-surface)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius)',
-    marginBottom: '16px',
-    maxWidth: '480px',
-  },
-  input: {
-    padding: '8px 12px',
-    borderRadius: 'var(--radius)',
-    border: '1px solid var(--color-border)',
-    fontSize: '0.9rem',
-    outline: 'none',
-    backgroundColor: 'var(--color-bg)',
-    color: 'var(--color-text)',
-  },
-  saveBtn: {
-    padding: '8px 16px',
-    borderRadius: 'var(--radius)',
-    backgroundColor: 'var(--color-success)',
-    color: 'white',
-    border: 'none',
-    fontSize: '0.9rem',
-    cursor: 'pointer',
-    fontWeight: 600,
-  },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px', marginTop: '12px' },
-  cardSmall: {
-    backgroundColor: 'var(--color-surface)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius)',
-    padding: '14px',
-    boxShadow: 'var(--shadow)',
-  },
-  cardName: { fontSize: '1rem', fontWeight: 600, marginBottom: '4px' },
-  cardActions: { display: 'flex', gap: '6px', marginTop: '10px', flexWrap: 'wrap' },
-  editBtn: {
-    padding: '3px 10px',
-    borderRadius: 'var(--radius)',
-    border: '1px solid var(--color-primary)',
-    backgroundColor: 'transparent',
-    color: 'var(--color-primary)',
-    fontSize: '0.75rem',
-    cursor: 'pointer',
-  },
-  stockBtn: {
-    padding: '3px 10px',
-    borderRadius: 'var(--radius)',
-    border: '1px solid var(--color-warning)',
-    backgroundColor: 'transparent',
-    color: 'var(--color-warning)',
-    fontSize: '0.75rem',
-    cursor: 'pointer',
-  },
-  orderBtn: {
-    padding: '3px 10px',
-    borderRadius: 'var(--radius)',
-    border: '1px solid var(--color-success)',
-    backgroundColor: 'transparent',
-    color: 'var(--color-success)',
-    fontSize: '0.75rem',
-    cursor: 'pointer',
-  },
-  deleteBtn: {
-    padding: '3px 10px',
-    borderRadius: 'var(--radius)',
-    border: '1px solid var(--color-danger)',
-    backgroundColor: 'transparent',
-    color: 'var(--color-danger)',
-    fontSize: '0.75rem',
-    cursor: 'pointer',
-  },
-  smallBtn: {
-    padding: '2px 8px',
-    borderRadius: 'var(--radius)',
-    border: '1px solid var(--color-border)',
-    backgroundColor: 'var(--color-bg)',
-    color: 'var(--color-text)',
-    fontSize: '0.7rem',
-    cursor: 'pointer',
-  },
-  mutedBtn: {
-    padding: '2px 8px',
-    borderRadius: 'var(--radius)',
-    border: 'none',
-    backgroundColor: 'transparent',
-    color: 'var(--color-text-muted)',
-    fontSize: '0.7rem',
-    cursor: 'pointer',
-  },
-  error: { color: 'var(--color-danger)', fontSize: '0.9rem', marginBottom: '12px' },
-  muted: { color: 'var(--color-text-muted)', fontSize: '0.85rem', marginBottom: '4px' },
 }
