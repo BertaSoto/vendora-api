@@ -28,6 +28,8 @@ export class AuthService {
       throw new AppError('Error interno del servidor', 500)
     }
 
+    await this.syncUserToPublicTable(data.user.id, dto.email)
+
     return {
       user: {
         id: data.user.id,
@@ -60,6 +62,8 @@ export class AuthService {
       throw new AppError('Error interno del servidor', 500)
     }
 
+    await this.syncUserToPublicTable(data.user.id, data.user.email ?? dto.email)
+
     return {
       user: {
         id: data.user.id,
@@ -69,6 +73,18 @@ export class AuthService {
       accessToken: data.session.access_token,
       refreshToken: data.session.refresh_token,
       expiresAt: data.session.expires_at ?? 0,
+    }
+  }
+
+  private async syncUserToPublicTable(userId: string, email: string): Promise<void> {
+    try {
+      await supabase.from('User').upsert({
+        id: userId,
+        email,
+        updatedAt: new Date().toISOString(),
+      })
+    } catch (err) {
+      console.error('[AUTH SERVICE] syncUserToPublicTable error:', err)
     }
   }
 
