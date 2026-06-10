@@ -26,6 +26,7 @@ authRoutes.post('/register', async (c) => {
 
     return c.json(response, 201)
   } catch (err) {
+    console.error('[AUTH ROUTE] register error:', err)
     if (err instanceof AppError) {
       const response: ApiErrorResponse = {
         success: false,
@@ -34,6 +35,7 @@ authRoutes.post('/register', async (c) => {
       return c.json(response, err.statusCode as ContentfulStatusCode)
     }
 
+    console.error('[AUTH ROUTE] register unexpected error:', err)
     const response: ApiErrorResponse = {
       success: false,
       error: 'Error interno del servidor',
@@ -55,6 +57,7 @@ authRoutes.post('/login', async (c) => {
 
     return c.json(response, 200)
   } catch (err) {
+    console.error('[AUTH ROUTE] login error:', err)
     if (err instanceof AppError) {
       const response: ApiErrorResponse = {
         success: false,
@@ -63,6 +66,7 @@ authRoutes.post('/login', async (c) => {
       return c.json(response, err.statusCode as ContentfulStatusCode)
     }
 
+    console.error('[AUTH ROUTE] login unexpected error:', err)
     const response: ApiErrorResponse = {
       success: false,
       error: 'Error interno del servidor',

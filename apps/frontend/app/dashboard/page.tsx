@@ -1,95 +1,151 @@
 'use client'
 
-import { useAuth } from '../../src/hooks/useAuth'
-import { decodeJwtPayload } from '../../src/lib/jwt'
-
-interface TokenPayload {
-  fullName?: string
-  email?: string
-}
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import {
+  Store,
+  Package,
+  ShoppingCart,
+  ArrowRight,
+  Plus,
+} from 'lucide-react'
+import { storesApi } from '@/api/stores'
+import { KpiCard } from '@/components/kpi-card'
+import { KpiSkeleton } from '@/components/ui/skeleton'
+import { ErrorState } from '@/components/ui/error-state'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import type { Store as StoreType } from '@/types'
 
 export default function DashboardPage() {
-  const { token } = useAuth()
-  const payload = token ? decodeJwtPayload<TokenPayload>(token) : null
-  const name = payload?.fullName ?? payload?.email ?? 'Usuario'
+  const router = useRouter()
+  const [stores, setStores] = useState<StoreType[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    loadStores()
+  }, [])
+
+  async function loadStores() {
+    setLoading(true)
+    try {
+      const data = await storesApi.list()
+      setStores(data)
+      setError(null)
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const activeStores = stores.filter((s) => s.status === 'ACTIVE').length
+
+  if (error) return <ErrorState message={error} onRetry={loadStores} />
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h1 style={styles.heading}>Bienvenido, {name}</h1>
-        <p style={styles.subtext}>Panel de administración de Vendora</p>
+    <div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-slate-900">
+          Bienvenido a Vendora
+        </h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Gestiona tus tiendas, productos y órdenes desde un solo lugar.
+        </p>
       </div>
 
-      <div style={styles.card}>
-        <div style={styles.cardContent}>
+      {loading ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <KpiSkeleton />
+          <KpiSkeleton />
+          <KpiSkeleton />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <KpiCard
+            title="Total Tiendas"
+            value={stores.length}
+            subtitle={`${activeStores} activas`}
+            icon={Store}
+          />
+          <KpiCard
+            title="Total Productos"
+            value="—"
+            icon={Package}
+          />
+          <KpiCard
+            title="Total Órdenes"
+            value="—"
+            icon={ShoppingCart}
+          />
+        </div>
+      )}
+
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Card className="flex flex-col items-start gap-3">
+          <div className="rounded-lg bg-brand-50 p-2.5">
+            <Plus className="h-5 w-5 text-brand-600" />
+          </div>
           <div>
-            <h2 style={styles.cardTitle}>Tiendas</h2>
-            <p style={styles.cardDesc}>
-              Gestiona tus tiendas, revisa sus productos y órdenes.
+            <h3 className="font-semibold text-slate-900">Nueva tienda</h3>
+            <p className="mt-0.5 text-sm text-slate-500">
+              Crea una tienda y empieza a vender.
             </p>
           </div>
-          <a href="/dashboard/tiendas" style={styles.cardBtn}>
-            Ver tiendas →
-          </a>
-        </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/dashboard/tiendas')}
+            className="mt-auto"
+          >
+            Crear tienda
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+        </Card>
+
+        <Card className="flex flex-col items-start gap-3">
+          <div className="rounded-lg bg-brand-50 p-2.5">
+            <Package className="h-5 w-5 text-brand-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-slate-900">Productos</h3>
+            <p className="mt-0.5 text-sm text-slate-500">
+              Administra el catálogo de productos.
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/dashboard/productos')}
+            className="mt-auto"
+          >
+            Ver productos
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+        </Card>
+
+        <Card className="flex flex-col items-start gap-3">
+          <div className="rounded-lg bg-brand-50 p-2.5">
+            <ShoppingCart className="h-5 w-5 text-brand-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-slate-900">Órdenes</h3>
+            <p className="mt-0.5 text-sm text-slate-500">
+              Revisa y gestiona las órdenes de compra.
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/dashboard/ordenes')}
+            className="mt-auto"
+          >
+            Ver órdenes
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+        </Card>
       </div>
     </div>
   )
-}
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '32px',
-  },
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-  },
-  heading: {
-    fontSize: '1.5rem',
-    fontWeight: 700,
-    color: 'var(--color-text)',
-  },
-  subtext: {
-    fontSize: '0.875rem',
-    color: 'var(--color-text-muted)',
-  },
-  card: {
-    backgroundColor: 'var(--color-surface)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius)',
-    boxShadow: 'var(--shadow)',
-    padding: '24px',
-  },
-  cardContent: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '16px',
-    flexWrap: 'wrap' as const,
-  },
-  cardTitle: {
-    fontSize: '1.1rem',
-    fontWeight: 600,
-    color: 'var(--color-text)',
-    marginBottom: '4px',
-  },
-  cardDesc: {
-    fontSize: '0.875rem',
-    color: 'var(--color-text-muted)',
-  },
-  cardBtn: {
-    display: 'inline-block',
-    padding: '10px 20px',
-    backgroundColor: 'var(--color-primary)',
-    color: 'white',
-    textDecoration: 'none',
-    borderRadius: 'var(--radius)',
-    fontSize: '0.9rem',
-    fontWeight: 600,
-    flexShrink: 0,
-  },
 }

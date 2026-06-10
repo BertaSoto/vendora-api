@@ -1,4 +1,4 @@
-export type StoreStatus = 'active' | 'suspended' | 'trial'
+export type StoreStatus = 'ACTIVE' | 'SUSPENDED' | 'TRIAL'
 
 export interface Store {
   id: string
