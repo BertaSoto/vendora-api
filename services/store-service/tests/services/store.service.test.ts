@@ -4,7 +4,7 @@ import type { StoreRow } from '../../src/types/store.type.js'
 // ── Mock state (hoisted para que vi.mock pueda usarlo) ──────────────────────
 const { mockResult, mockChain, mockFrom } = vi.hoisted(() => {
   const mockResult = {
-    data: null as StoreRow | StoreRow[] | null,
+    data: null as StoreRow | StoreRow[] | { slug: string }[] | null,
     error: null as { message: string; code?: string } | null,
   }
 
@@ -15,6 +15,7 @@ const { mockResult, mockChain, mockFrom } = vi.hoisted(() => {
     delete: vi.fn(),
     eq: vi.fn(),
     order: vi.fn(),
+    ilike: vi.fn(),
     single: vi.fn(),
   }
 
@@ -45,7 +46,7 @@ const makeStoreRow = (overrides?: Partial<StoreRow>): StoreRow => ({
   name: 'Test Store',
   slug: 'test-store',
   description: null,
-  status: 'trial',
+  status: 'TRIAL',
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-01T00:00:00.000Z',
   ...overrides,
@@ -67,6 +68,7 @@ describe('StoreService', () => {
     mockChain.delete.mockReturnValue(mockChain)
     mockChain.eq.mockReturnValue(mockChain)
     mockChain.order.mockReturnValue(mockChain)
+    mockChain.ilike.mockReturnValue(mockChain)
     mockChain.single.mockImplementation(() => Promise.resolve(mockResult))
     mockFrom.mockReturnValue(mockChain)
 
@@ -74,10 +76,15 @@ describe('StoreService', () => {
   })
 
   // ── create ───────────────────────────────────────────────────────────────
+  // Nota: create() hace DOS llamadas a Supabase:
+  //   1. uniqueSlug() → from('Store').select('slug').ilike(...)   → awaita via `then` getter
+  //   2. insert()     → from('Store').insert(...).single()        → awaita via single()
+  // Por eso usamos mockResolvedValueOnce en single() para el insert y
+  // dejamos mockResult.data = null para uniqueSlug (null → devuelve el slug base).
   describe('create', () => {
     it('crea una tienda y devuelve la respuesta formateada', async () => {
       const row = makeStoreRow()
-      mockResult.data = row
+      mockChain.single.mockResolvedValueOnce({ data: row, error: null })
 
       const result = await service.create({ merchantId: 'merchant-uuid-1', name: 'Test Store' })
 
@@ -96,7 +103,7 @@ describe('StoreService', () => {
 
     it('genera el slug a partir del nombre', async () => {
       const row = makeStoreRow({ name: 'Mi Tienda Génial', slug: 'mi-tienda-genial' })
-      mockResult.data = row
+      mockChain.single.mockResolvedValueOnce({ data: row, error: null })
 
       const result = await service.create({ merchantId: 'merchant-uuid-1', name: 'Mi Tienda Génial' })
 
@@ -105,7 +112,7 @@ describe('StoreService', () => {
 
     it('crea tienda con descripción opcional', async () => {
       const row = makeStoreRow({ description: 'Una tienda increíble' })
-      mockResult.data = row
+      mockChain.single.mockResolvedValueOnce({ data: row, error: null })
 
       const result = await service.create({
         merchantId: 'merchant-uuid-1',
@@ -140,18 +147,44 @@ describe('StoreService', () => {
       ).rejects.toThrow('name must be at least 3 characters long')
     })
 
-    it('lanza error de nombre duplicado cuando supabase retorna código 23505', async () => {
-      mockResult.data = null
-      mockResult.error = { code: '23505', message: 'unique violation' }
+    it('lanza error de slug duplicado cuando supabase retorna código 23505', async () => {
+      mockChain.single.mockResolvedValueOnce({
+        data: null,
+        error: { code: '23505', message: 'unique violation' },
+      })
 
       await expect(
         service.create({ merchantId: 'merchant-1', name: 'Test Store' })
-      ).rejects.toThrow('A store with the name "Test Store" already exists.')
+      ).rejects.toThrow('A store with the slug "test-store" already exists.')
+    })
+
+    it('genera un slug con sufijo -2 cuando ya existe el slug base', async () => {
+      // uniqueSlug recibirá que 'test-store' ya existe → devolverá 'test-store-2'
+      mockResult.data = [{ slug: 'test-store' }] as any
+      const row = makeStoreRow({ slug: 'test-store-2' })
+      mockChain.single.mockResolvedValueOnce({ data: row, error: null })
+
+      const result = await service.create({ merchantId: 'merchant-uuid-1', name: 'Test Store' })
+
+      expect(result.slug).toBe('test-store-2')
+    })
+
+    it('genera un sufijo incremental cuando múltiples slugs similares existen', async () => {
+      // uniqueSlug encontrará 'test-store' y 'test-store-2' → devolverá 'test-store-3'
+      mockResult.data = [{ slug: 'test-store' }, { slug: 'test-store-2' }] as any
+      const row = makeStoreRow({ slug: 'test-store-3' })
+      mockChain.single.mockResolvedValueOnce({ data: row, error: null })
+
+      const result = await service.create({ merchantId: 'merchant-uuid-1', name: 'Test Store' })
+
+      expect(result.slug).toBe('test-store-3')
     })
 
     it('lanza error genérico en otros errores de supabase', async () => {
-      mockResult.data = null
-      mockResult.error = { message: 'connection refused' }
+      mockChain.single.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'connection refused' },
+      })
 
       await expect(
         service.create({ merchantId: 'merchant-1', name: 'Test Store' })
@@ -283,13 +316,13 @@ describe('StoreService', () => {
     })
 
     it('actualiza solo el campo status', async () => {
-      const row = makeStoreRow({ status: 'active' })
+      const row = makeStoreRow({ status: 'ACTIVE' })
       mockResult.data = row
 
-      const result = await service.update('store-uuid-1', { status: 'active' })
+      const result = await service.update('store-uuid-1', { status: 'ACTIVE' })
 
-      expect(mockChain.update).toHaveBeenCalledWith({ status: 'active' })
-      expect(result?.status).toBe('active')
+      expect(mockChain.update).toHaveBeenCalledWith({ status: 'ACTIVE' })
+      expect(result?.status).toBe('ACTIVE')
     })
 
     it('actualiza solo el campo description', async () => {
