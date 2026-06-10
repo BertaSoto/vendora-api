@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { authApi } from '@/api/auth'
@@ -24,6 +24,7 @@ export default function RegisterPage() {
     }
 
     setIsLoading(true)
+
     try {
       await authApi.register({ email, password, fullName })
       router.push('/auth/login')
