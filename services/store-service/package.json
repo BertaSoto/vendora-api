@@ -7,7 +7,8 @@
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "lint": "echo lint-store-service",
-    "test": "echo test-store-service"
+    "test": "vitest",
+    "test:coverage": "vitest --coverage"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.0",
@@ -22,7 +23,11 @@
   "devDependencies": {
     "@types/node": "^22.19.15",
     "@types/ws": "^8.18.1",
+    "@vitest/coverage-v8": "^4.1.8",
+    "@vitest/ui": "^4.1.8",
+    "happy-dom": "^20.10.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.8"
   }
 }
