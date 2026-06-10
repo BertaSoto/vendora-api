@@ -1,9 +1,18 @@
 'use client'
 
 import { useState, useEffect, type FormEvent } from 'react'
-import Link from 'next/link'
-import { storesApi } from '../../../src/api/stores'
-import type { Store, CreateStoreDto, UpdateStoreDto } from '../../../src/types'
+import { toast } from 'sonner'
+import { Plus, X } from 'lucide-react'
+import { storesApi } from '@/api/stores'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card } from '@/components/ui/card'
+import { StoreCard } from '@/components/store-card'
+import { CardSkeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
+import { ErrorState } from '@/components/ui/error-state'
+import { ConfirmModal } from '@/components/ui/modal'
+import type { Store, CreateStoreDto } from '@/types'
 
 export default function TiendasPage() {
   const [stores, setStores] = useState<Store[]>([])
@@ -13,8 +22,12 @@ export default function TiendasPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState({ name: '', description: '' })
   const [saving, setSaving] = useState(false)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => { loadStores() }, [])
+  useEffect(() => {
+    loadStores()
+  }, [])
 
   async function loadStores() {
     setLoading(true)
@@ -39,6 +52,7 @@ export default function TiendasPage() {
     setForm({ name: s.name, description: s.description ?? '' })
     setEditingId(s.id)
     setShowForm(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -47,165 +61,137 @@ export default function TiendasPage() {
     try {
       if (editingId) {
         await storesApi.update(editingId, form)
+        toast.success('Tienda actualizada correctamente')
       } else {
-        const dto: CreateStoreDto = { merchantId: '', name: form.name, description: form.description || undefined }
+        const dto: CreateStoreDto = {
+          name: form.name,
+          description: form.description || undefined,
+        }
         await storesApi.create(dto)
+        toast.success('Tienda creada correctamente')
       }
       resetForm()
       await loadStores()
     } catch (err) {
-      setError((err as Error).message)
+      toast.error((err as Error).message)
     } finally {
       setSaving(false)
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('¿Eliminar esta tienda?')) return
+  async function handleDelete() {
+    if (!deleteId) return
+    setDeleting(true)
     try {
-      await storesApi.remove(id)
+      await storesApi.remove(deleteId)
+      toast.success('Tienda eliminada')
       await loadStores()
     } catch (err) {
-      setError((err as Error).message)
+      toast.error((err as Error).message)
+    } finally {
+      setDeleting(false)
+      setDeleteId(null)
     }
   }
 
-  const statusColor: Record<string, string> = { active: 'var(--color-success)', suspended: 'var(--color-danger)', trial: 'var(--color-warning)' }
-
   return (
     <div>
-      <div style={styles.header}>
-        <h1 style={styles.title}>Tiendas</h1>
-        <button onClick={() => setShowForm(!showForm)} style={styles.addBtn}>
-          {showForm ? 'Cancelar' : '+ Nueva tienda'}
-        </button>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Tiendas</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            {stores.length} {stores.length === 1 ? 'tienda' : 'tiendas'}
+          </p>
+        </div>
+        <Button onClick={() => setShowForm(!showForm)}>
+          {showForm ? (
+            <>
+              <X className="h-4 w-4" />
+              Cancelar
+            </>
+          ) : (
+            <>
+              <Plus className="h-4 w-4" />
+              Nueva tienda
+            </>
+          )}
+        </Button>
       </div>
 
-      {error && <p style={styles.error}>Error: {error}</p>}
-
       {showForm && (
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <input
-            placeholder="Nombre de la tienda"
-            value={form.name}
-            onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-            required
-            minLength={3}
-            style={styles.input}
-          />
-          <input
-            placeholder="Descripción (opcional)"
-            value={form.description}
-            onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-            style={styles.input}
-          />
-          <button type="submit" disabled={saving} style={styles.saveBtn}>
-            {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
-          </button>
-        </form>
+        <Card className="mb-6">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <h2 className="text-sm font-semibold text-slate-700">
+              {editingId ? 'Editar tienda' : 'Nueva tienda'}
+            </h2>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Input
+                placeholder="Nombre de la tienda"
+                value={form.name}
+                onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                required
+                minLength={3}
+                className="flex-1"
+              />
+              <Input
+                placeholder="Descripción (opcional)"
+                value={form.description}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, description: e.target.value }))
+                }
+                className="flex-1"
+              />
+              <Button type="submit" disabled={saving}>
+                {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
+              </Button>
+            </div>
+          </form>
+        </Card>
       )}
+
+      {error && <ErrorState message={error} onRetry={loadStores} />}
 
       {loading ? (
-        <p style={styles.muted}>Cargando tiendas...</p>
-      ) : stores.length === 0 ? (
-        <p style={styles.muted}>No hay tiendas. Crea la primera.</p>
-      ) : (
-        <div style={styles.grid}>
-          {stores.map(s => (
-            <div key={s.id} style={styles.card}>
-              <div style={styles.cardHeader}>
-                <Link href={`/dashboard/tiendas/${s.id}`} style={styles.cardName}>{s.name}</Link>
-                <span style={{ ...styles.status, color: statusColor[s.status] || 'var(--color-text-muted)' }}>
-                  {s.status}
-                </span>
-              </div>
-              {s.description && <p style={styles.muted}>{s.description}</p>}
-              <p style={styles.muted}>Slug: {s.slug}</p>
-              <div style={styles.cardActions}>
-                <button onClick={() => startEdit(s)} style={styles.editBtn}>Editar</button>
-                <button onClick={() => handleDelete(s.id)} style={styles.deleteBtn}>Eliminar</button>
-              </div>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
         </div>
+      ) : !error && stores.length === 0 ? (
+        <EmptyState
+          title="No hay tiendas"
+          description="Crea tu primera tienda para empezar a gestionar productos y órdenes."
+          action={
+            <Button onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4" />
+              Nueva tienda
+            </Button>
+          }
+        />
+      ) : (
+        !error && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {stores.map((s) => (
+              <StoreCard
+                key={s.id}
+                store={s}
+                onEdit={startEdit}
+                onDelete={(id) => setDeleteId(id)}
+              />
+            ))}
+          </div>
+        )
       )}
+
+      <ConfirmModal
+        open={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDelete}
+        title="Eliminar tienda"
+        description="¿Estás seguro? Esta acción no se puede deshacer. Se eliminarán todos los productos y órdenes asociados a esta tienda."
+        confirmLabel="Eliminar tienda"
+        loading={deleting}
+      />
     </div>
   )
-}
-
-const styles: Record<string, React.CSSProperties> = {
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
-  title: { fontSize: '1.5rem', fontWeight: 700 },
-  addBtn: {
-    padding: '8px 16px',
-    borderRadius: 'var(--radius)',
-    backgroundColor: 'var(--color-primary)',
-    color: 'white',
-    border: 'none',
-    fontSize: '0.9rem',
-    cursor: 'pointer',
-    fontWeight: 600,
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-    padding: '16px',
-    backgroundColor: 'var(--color-surface)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius)',
-    marginBottom: '20px',
-    maxWidth: '480px',
-  },
-  input: {
-    padding: '8px 12px',
-    borderRadius: 'var(--radius)',
-    border: '1px solid var(--color-border)',
-    fontSize: '0.9rem',
-    outline: 'none',
-    backgroundColor: 'var(--color-bg)',
-    color: 'var(--color-text)',
-  },
-  saveBtn: {
-    padding: '8px 16px',
-    borderRadius: 'var(--radius)',
-    backgroundColor: 'var(--color-success)',
-    color: 'white',
-    border: 'none',
-    fontSize: '0.9rem',
-    cursor: 'pointer',
-    fontWeight: 600,
-  },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' },
-  card: {
-    backgroundColor: 'var(--color-surface)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius)',
-    padding: '16px',
-    boxShadow: 'var(--shadow)',
-  },
-  cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' },
-  cardName: { fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' },
-  status: { fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase' },
-  cardActions: { display: 'flex', gap: '8px', marginTop: '12px' },
-  editBtn: {
-    padding: '4px 12px',
-    borderRadius: 'var(--radius)',
-    border: '1px solid var(--color-primary)',
-    backgroundColor: 'transparent',
-    color: 'var(--color-primary)',
-    fontSize: '0.8rem',
-    cursor: 'pointer',
-  },
-  deleteBtn: {
-    padding: '4px 12px',
-    borderRadius: 'var(--radius)',
-    border: '1px solid var(--color-danger)',
-    backgroundColor: 'transparent',
-    color: 'var(--color-danger)',
-    fontSize: '0.8rem',
-    cursor: 'pointer',
-  },
-  error: { color: 'var(--color-danger)', fontSize: '0.9rem', marginBottom: '12px' },
-  muted: { color: 'var(--color-text-muted)', fontSize: '0.85rem', marginBottom: '4px' },
 }

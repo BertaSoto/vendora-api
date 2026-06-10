@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto'
 import { supabase } from '../lib/supabase.js'
 import type { Store, StoreRow } from '../types/store.type.js'
 import { rowToStore } from '../types/store.type.js'
@@ -12,20 +13,43 @@ function slugify(text: string): string {
     .replace(/(^-|-$)+/g, '')
 }
 
+async function uniqueSlug(baseSlug: string): Promise<string> {
+  const { data } = await supabase
+    .from('Store')
+    .select('slug')
+    .ilike('slug', `${baseSlug}%`)
+
+  if (!data || data.length === 0) return baseSlug
+
+  const existing = new Set((data as { slug: string }[]).map((r) => r.slug))
+  if (!existing.has(baseSlug)) return baseSlug
+
+  let suffix = 2
+  while (existing.has(`${baseSlug}-${suffix}`)) {
+    suffix++
+  }
+  return `${baseSlug}-${suffix}`
+}
+
 export class StoreService {
   async create(dto: CreateStoreDto): Promise<StoreResponseDto> {
     this.validateCreateDto(dto)
 
-    const slug = slugify(dto.name)
+    const now = new Date().toISOString()
+    const baseSlug = slugify(dto.name)
+    const slug = await uniqueSlug(baseSlug)
 
     const { data, error } = await supabase
       .from('Store')
       .insert({
+        id: randomUUID(),
         merchantId: dto.merchantId,
         name: dto.name,
         slug,
         description: dto.description ?? null,
-        status: 'trial',
+        status: 'TRIAL',
+        createdAt: now,
+        updatedAt: now,
       })
       .select()
       .single<StoreRow>()
@@ -33,7 +57,7 @@ export class StoreService {
     if (error) {
       console.error('[SUPABASE STORE] create error:', error)
       if (error.code === '23505') {
-        throw new Error(`A store with the name "${dto.name}" already exists.`)
+        throw new Error(`A store with the slug "${slug}" already exists.`)
       }
       throw new Error(error.message)
     }

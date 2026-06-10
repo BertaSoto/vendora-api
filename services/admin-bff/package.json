@@ -10,6 +10,7 @@
     "test": "echo test-admin-bff"
   },
   "dependencies": {
+    "@hono/node-server": "^1.14.0",
     "@supabase/supabase-js": "^2.105.4",
     "hono": "^4.12.8",
     "ws": "^8.18.0"

@@ -1,128 +1,93 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useAuth } from '../../../src/hooks/useAuth'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function LoginPage() {
+  const router = useRouter()
   const { login, isLoading, error, clearError } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    await login({ email, password })
+    const success = await login({ email, password })
+    if (success) {
+      router.push('/dashboard')
+    }
   }
 
   return (
-    <main style={styles.main}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>Vendora</h1>
-        <p style={styles.subtitle}>Inicia sesión para continuar</p>
+    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-bold text-brand-600">Vendora</h1>
+          <p className="mt-2 text-sm text-slate-500">
+            Inicia sesión para continuar
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <input
-            type="email"
-            placeholder="Correo electrónico"
-            value={email}
-            onChange={(e) => { setEmail(e.target.value); clearError() }}
-            required
-            style={styles.input}
-          />
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => { setPassword(e.target.value); clearError() }}
-            required
-            style={styles.input}
-          />
-          {error && <p style={styles.error}>{error}</p>}
-          <button type="submit" disabled={isLoading} style={styles.button}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">
+              Correo electrónico
+            </label>
+            <input
+              type="email"
+              placeholder="tu@correo.com"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                clearError()
+              }}
+              required
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">
+              Contraseña
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                clearError()
+              }}
+              required
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            />
+          </div>
+
+          {error && (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="mt-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+          >
             {isLoading ? 'Ingresando...' : 'Iniciar sesión'}
           </button>
         </form>
 
-        <p style={styles.footer}>
+        <p className="mt-6 text-center text-sm text-slate-500">
           ¿No tienes cuenta?{' '}
-          <Link href="/auth/register" style={styles.link}>
+          <Link
+            href="/auth/register"
+            className="font-semibold text-brand-600 hover:text-brand-700"
+          >
             Regístrate
           </Link>
         </p>
       </div>
     </main>
   )
-}
-
-const styles: Record<string, React.CSSProperties> = {
-  main: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '100vh',
-    backgroundColor: 'var(--color-bg)',
-    fontFamily: 'system-ui, sans-serif',
-  },
-  card: {
-    backgroundColor: 'var(--color-surface)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius)',
-    padding: '48px',
-    textAlign: 'center',
-    maxWidth: '420px',
-    width: '100%',
-    boxShadow: 'var(--shadow)',
-  },
-  title: {
-    fontSize: '2rem',
-    fontWeight: 700,
-    color: 'var(--color-primary)',
-    marginBottom: '8px',
-  },
-  subtitle: {
-    color: 'var(--color-text-muted)',
-    marginBottom: '32px',
-    fontSize: '0.95rem',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-  },
-  input: {
-    padding: '10px 14px',
-    borderRadius: 'var(--radius)',
-    border: '1px solid var(--color-border)',
-    fontSize: '0.95rem',
-    outline: 'none',
-    backgroundColor: 'var(--color-bg)',
-    color: 'var(--color-text)',
-  },
-  button: {
-    padding: '10px 20px',
-    borderRadius: 'var(--radius)',
-    backgroundColor: 'var(--color-primary)',
-    color: 'white',
-    border: 'none',
-    fontSize: '0.95rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    marginTop: '4px',
-  },
-  error: {
-    color: 'var(--color-danger)',
-    fontSize: '0.85rem',
-    textAlign: 'left',
-    padding: '4px 0',
-  },
-  footer: {
-    marginTop: '20px',
-    fontSize: '0.9rem',
-    color: 'var(--color-text-muted)',
-  },
-  link: {
-    color: 'var(--color-primary)',
-    textDecoration: 'none',
-    fontWeight: 600,
-  },
 }

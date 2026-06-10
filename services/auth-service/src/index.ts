@@ -1,5 +1,7 @@
+import 'dotenv/config'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { serve } from '@hono/node-server'
 import authRoutes from './routes/auth.routes.js'
 import type { ApiSuccessResponse, HealthData } from './types/auth.type.js'
 
@@ -27,5 +29,11 @@ app.get('/health', (c) => {
 })
 
 app.route('/auth', authRoutes)
+
+if (process.env.VERCEL !== '1') {
+  const port = Number(process.env.PORT ?? 3004)
+  serve({ fetch: app.fetch, port })
+  console.log(`auth-service running on http://localhost:${port}`)
+}
 
 export default app
