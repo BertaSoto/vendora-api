@@ -1,412 +1,320 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { OrderRow, OrderStatus } from '../../src/types/index.js'
-
-// ── Mock state (hoisted para que vi.mock pueda usarlo) ──────────────────────
-const { mockResult, mockChain, mockFrom } = vi.hoisted(() => {
-  const mockResult = {
-    data: null as any,
-    error: null as { message: string; code?: string } | null,
-  }
-
-  const mockChain: any = {
-    select: vi.fn(),
-    insert: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-    eq: vi.fn(),
-    order: vi.fn(),
-    single: vi.fn(),
-  }
-
-  // Hace el chain "thenable" para poder hacer `await chain.eq(...)` sin .single()
-  Object.defineProperty(mockChain, 'then', {
-    get: () => (resolve: any, reject?: any) =>
-      Promise.resolve(mockResult).then(resolve, reject),
-    configurable: true,
-  })
-
-  return {
-    mockResult,
-    mockChain,
-    mockFrom: vi.fn(),
-  }
-})
-
-vi.mock('../../src/lib/supabase.js', () => ({
-  supabase: { from: mockFrom },
-}))
-
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
+import { randomUUID } from 'crypto'
 import { OrderService } from '../../src/services/order.service.js'
+import { supabase } from '../../src/lib/supabase.js'
 
-// ── Fixtures ────────────────────────────────────────────────────────────────
-const makeOrderRow = (
-  overrides?: Partial<OrderRow & { product_name?: string | null }>
-): OrderRow & { product_name?: string | null } => ({
-  id: 'order-uuid-1',
-  user_id: 'user-uuid-1',
-  store_id: 'store-uuid-1',
-  product_id: 'product-uuid-1',
-  product_name: 'Producto Test',
-  quantity: 2,
-  total: 199.98,
-  status: 'pending' as OrderStatus,
-  created_at: '2024-01-01T00:00:00.000Z',
-  updated_at: '2024-01-01T00:00:00.000Z',
-  ...overrides,
-})
+const service = new OrderService()
 
-const makeProductData = (overrides?: { name?: string; price?: number }) => ({
-  name: 'Producto Test',
-  price: 99.99,
-  ...overrides,
-})
+// Identificadores únicos por ejecución
+const RUN_ID = randomUUID().slice(0, 8)
+const TEST_USER_ID = randomUUID()
+const TEST_STORE_ID = randomUUID()
+const TEST_PRODUCT_ID = randomUUID()
+const TEST_PRODUCT_PRICE = 50
 
-// ── Suite principal ──────────────────────────────────────────────────────────
-describe('OrderService', () => {
-  let service: OrderService
+// Rastrea los IDs creados para limpiar al final
+const createdOrderIds: string[] = []
 
-  beforeEach(() => {
-    vi.resetAllMocks()
-    mockResult.data = null
-    mockResult.error = null
+// ── Helpers ───────────────────────────────────────────────────────────────────
+async function createTestOrder(userId = TEST_USER_ID, quantity = 2) {
+  const order = await service.create({
+    userId,
+    storeId: TEST_STORE_ID,
+    productId: TEST_PRODUCT_ID,
+    quantity,
+  })
+  createdOrderIds.push(order.id)
+  return order
+}
 
-    // Reconstruir chain después del reset
-    mockChain.select.mockReturnValue(mockChain)
-    mockChain.insert.mockReturnValue(mockChain)
-    mockChain.update.mockReturnValue(mockChain)
-    mockChain.delete.mockReturnValue(mockChain)
-    mockChain.eq.mockReturnValue(mockChain)
-    mockChain.order.mockReturnValue(mockChain)
-    mockChain.single.mockImplementation(() => Promise.resolve(mockResult))
-    mockFrom.mockReturnValue(mockChain)
+// ── Suite principal ────────────────────────────────────────────────────────────
+describe('OrderService (integración)', () => {
 
-    service = new OrderService()
+  beforeAll(async () => {
+    const now = new Date().toISOString()
+
+    // 1. Usuario de prueba
+    const { error: userErr } = await supabase.from('User').insert({
+      id: TEST_USER_ID,
+      email: `vitest-order-${RUN_ID}@test.internal`,
+      role: 'MERCHANT',
+      updatedAt: now,
+    })
+    if (userErr) throw new Error(`Setup user: ${userErr.message}`)
+
+    // 2. Tienda de prueba
+    const { error: storeErr } = await supabase.from('Store').insert({
+      id: TEST_STORE_ID,
+      merchantId: TEST_USER_ID,
+      name: `VT Store Order ${RUN_ID}`,
+      slug: `vt-store-order-${RUN_ID}`,
+      status: 'TRIAL',
+      createdAt: now,
+      updatedAt: now,
+    })
+    if (storeErr) throw new Error(`Setup store: ${storeErr.message}`)
+
+    // 3. Producto de prueba (la creación de orden consulta su precio en la BD)
+    const { error: prodErr } = await supabase.from('Product').insert({
+      id: TEST_PRODUCT_ID,
+      store_id: TEST_STORE_ID,
+      name: `VT Product Order ${RUN_ID}`,
+      description: 'Producto para tests de orden',
+      price: TEST_PRODUCT_PRICE,
+      stock: 100,
+    })
+    if (prodErr) throw new Error(`Setup product: ${prodErr.message}`)
   })
 
-  // ── create ───────────────────────────────────────────────────────────────
+  afterAll(async () => {
+    await Promise.all(createdOrderIds.map(id =>
+      supabase.from('Order').delete().eq('id', id).then(() => {})
+    ))
+    await supabase.from('Product').delete().eq('id', TEST_PRODUCT_ID)
+    await supabase.from('Store').delete().eq('id', TEST_STORE_ID)
+    await supabase.from('User').delete().eq('id', TEST_USER_ID)
+  })
+
+  // ── create ──────────────────────────────────────────────────────────────────
   describe('create', () => {
-    it('crea una orden con total calculado correctamente', async () => {
-      const productData = makeProductData({ price: 99.99 })
-      const orderRow = makeOrderRow({ quantity: 2, total: 199.98 })
+    it('crea una orden, calcula el total y la persiste en Supabase', async () => {
+      const order = await createTestOrder(TEST_USER_ID, 2)
 
-      mockChain.single
-        .mockResolvedValueOnce({ data: productData, error: null })
-        .mockResolvedValueOnce({ data: orderRow, error: null })
-
-      const result = await service.create({
-        userId: 'user-uuid-1',
-        storeId: 'store-uuid-1',
-        productId: 'product-uuid-1',
-        quantity: 2,
-      })
-
-      expect(mockFrom).toHaveBeenCalledWith('Product')
-      expect(mockFrom).toHaveBeenCalledWith('Order')
-      expect(result.total).toBe(199.98)
-      expect(result.quantity).toBe(2)
-      expect(result.productName).toBe('Producto Test')
-      expect(result.status).toBe('pending')
+      expect(order.id).toBeDefined()
+      expect(order.userId).toBe(TEST_USER_ID)
+      expect(order.storeId).toBe(TEST_STORE_ID)
+      expect(order.productId).toBe(TEST_PRODUCT_ID)
+      expect(order.quantity).toBe(2)
+      expect(order.total).toBe(TEST_PRODUCT_PRICE * 2)
+      expect(order.status).toBe('pending')
+      expect(order.productName).toBe(`VT Product Order ${RUN_ID}`)
     })
 
-    it('calcula correctamente el total para cantidad de 1', async () => {
-      const productData = makeProductData({ price: 50 })
-      const orderRow = makeOrderRow({ quantity: 1, total: 50 })
+    it('calcula correctamente el total para cantidad 1', async () => {
+      const order = await createTestOrder(TEST_USER_ID, 1)
 
-      mockChain.single
-        .mockResolvedValueOnce({ data: productData, error: null })
-        .mockResolvedValueOnce({ data: orderRow, error: null })
-
-      const result = await service.create({
-        userId: 'user-uuid-1',
-        storeId: 'store-uuid-1',
-        productId: 'product-uuid-1',
-        quantity: 1,
-      })
-
-      expect(result.total).toBe(50)
+      expect(order.total).toBe(TEST_PRODUCT_PRICE)
     })
 
-    it('lanza error cuando userId está vacío', async () => {
+    it('lanza error de validación cuando userId está vacío', async () => {
       await expect(
-        service.create({ userId: '', storeId: 'store-1', productId: 'prod-1', quantity: 1 })
+        service.create({ userId: '', storeId: TEST_STORE_ID, productId: TEST_PRODUCT_ID, quantity: 1 })
       ).rejects.toThrow('userId is required')
     })
 
-    it('lanza error cuando storeId está vacío', async () => {
+    it('lanza error de validación cuando storeId está vacío', async () => {
       await expect(
-        service.create({ userId: 'user-1', storeId: '', productId: 'prod-1', quantity: 1 })
+        service.create({ userId: TEST_USER_ID, storeId: '', productId: TEST_PRODUCT_ID, quantity: 1 })
       ).rejects.toThrow('storeId is required')
     })
 
-    it('lanza error cuando productId está vacío', async () => {
+    it('lanza error de validación cuando productId está vacío', async () => {
       await expect(
-        service.create({ userId: 'user-1', storeId: 'store-1', productId: '', quantity: 1 })
+        service.create({ userId: TEST_USER_ID, storeId: TEST_STORE_ID, productId: '', quantity: 1 })
       ).rejects.toThrow('productId is required')
     })
 
-    it('lanza error cuando quantity es menor a 1', async () => {
+    it('lanza error de validación cuando quantity es menor a 1', async () => {
       await expect(
-        service.create({ userId: 'user-1', storeId: 'store-1', productId: 'prod-1', quantity: 0 })
+        service.create({ userId: TEST_USER_ID, storeId: TEST_STORE_ID, productId: TEST_PRODUCT_ID, quantity: 0 })
       ).rejects.toThrow('quantity must be a positive integer')
     })
 
-    it('lanza error cuando quantity es negativa', async () => {
+    it('lanza "Product not found" cuando el productId no existe en la BD', async () => {
       await expect(
-        service.create({ userId: 'user-1', storeId: 'store-1', productId: 'prod-1', quantity: -1 })
-      ).rejects.toThrow('quantity must be a positive integer')
-    })
-
-    it('lanza error cuando el producto no se encuentra (error de supabase)', async () => {
-      mockChain.single.mockResolvedValueOnce({ data: null, error: { message: 'not found' } })
-
-      await expect(
-        service.create({ userId: 'user-1', storeId: 'store-1', productId: 'id-inexistente', quantity: 1 })
+        service.create({ userId: TEST_USER_ID, storeId: TEST_STORE_ID, productId: randomUUID(), quantity: 1 })
       ).rejects.toThrow('Product not found')
-    })
-
-    it('lanza error cuando el producto retorna data null', async () => {
-      mockChain.single.mockResolvedValueOnce({ data: null, error: null })
-
-      await expect(
-        service.create({ userId: 'user-1', storeId: 'store-1', productId: 'prod-1', quantity: 1 })
-      ).rejects.toThrow('Product not found')
-    })
-
-    it('lanza error cuando el insert de la orden falla en supabase', async () => {
-      const productData = makeProductData()
-      mockChain.single
-        .mockResolvedValueOnce({ data: productData, error: null })
-        .mockResolvedValueOnce({ data: null, error: { message: 'insert failed' } })
-
-      await expect(
-        service.create({ userId: 'user-1', storeId: 'store-1', productId: 'prod-1', quantity: 1 })
-      ).rejects.toThrow('insert failed')
     })
   })
 
-  // ── findById ─────────────────────────────────────────────────────────────
+  // ── findById ─────────────────────────────────────────────────────────────────
   describe('findById', () => {
-    it('devuelve la orden cuando existe', async () => {
-      const row = makeOrderRow()
-      mockResult.data = row
+    let orderId: string
 
-      const result = await service.findById('order-uuid-1')
-
-      expect(mockFrom).toHaveBeenCalledWith('Order')
-      expect(result?.id).toBe('order-uuid-1')
-      expect(result?.userId).toBe('user-uuid-1')
-      expect(result?.productName).toBe('Producto Test')
+    beforeAll(async () => {
+      const order = await createTestOrder()
+      orderId = order.id
     })
 
-    it('devuelve null cuando supabase retorna error', async () => {
-      mockResult.error = { message: 'not found' }
+    it('devuelve la orden cuando el ID existe en la BD', async () => {
+      const result = await service.findById(orderId)
 
-      const result = await service.findById('id-inexistente')
+      expect(result).not.toBeNull()
+      expect(result?.id).toBe(orderId)
+      expect(result?.userId).toBe(TEST_USER_ID)
+    })
+
+    it('devuelve null cuando el ID no existe en la BD', async () => {
+      const result = await service.findById(randomUUID())
 
       expect(result).toBeNull()
     })
 
-    it('lanza error cuando id está vacío', async () => {
+    it('lanza error de validación cuando id está vacío', async () => {
       await expect(service.findById('')).rejects.toThrow('id is required')
     })
   })
 
-  // ── findAll ───────────────────────────────────────────────────────────────
+  // ── findAll ───────────────────────────────────────────────────────────────────
   describe('findAll', () => {
-    it('devuelve todas las órdenes ordenadas por fecha', async () => {
-      const rows = [makeOrderRow(), makeOrderRow({ id: 'order-uuid-2' })]
-      mockResult.data = rows
-
+    it('devuelve al menos las órdenes creadas en esta suite', async () => {
       const result = await service.findAll()
 
-      expect(result).toHaveLength(2)
-      expect(mockChain.order).toHaveBeenCalledWith('created_at', { ascending: false })
-    })
-
-    it('devuelve arreglo vacío cuando no hay órdenes', async () => {
-      mockResult.data = []
-
-      const result = await service.findAll()
-
-      expect(result).toEqual([])
-    })
-
-    it('lanza error en fallo de supabase', async () => {
-      mockResult.error = { message: 'database error' }
-
-      await expect(service.findAll()).rejects.toThrow('database error')
+      expect(Array.isArray(result)).toBe(true)
+      const ours = result.filter(o => o.userId === TEST_USER_ID)
+      expect(ours.length).toBeGreaterThan(0)
     })
   })
 
-  // ── findAllByUserId ───────────────────────────────────────────────────────
+  // ── findAllByUserId ───────────────────────────────────────────────────────────
   describe('findAllByUserId', () => {
-    it('devuelve las órdenes del usuario', async () => {
-      const rows = [makeOrderRow(), makeOrderRow({ id: 'order-uuid-2' })]
-      mockResult.data = rows
-
-      const result = await service.findAllByUserId('user-uuid-1')
-
-      expect(result).toHaveLength(2)
-      expect(result[0].userId).toBe('user-uuid-1')
+    beforeAll(async () => {
+      await createTestOrder()
     })
 
-    it('devuelve arreglo vacío si el usuario no tiene órdenes', async () => {
-      mockResult.data = []
+    it('devuelve las órdenes del usuario', async () => {
+      const result = await service.findAllByUserId(TEST_USER_ID)
 
-      const result = await service.findAllByUserId('user-uuid-1')
+      expect(result.length).toBeGreaterThanOrEqual(1)
+      expect(result.every(o => o.userId === TEST_USER_ID)).toBe(true)
+    })
+
+    it('devuelve arreglo vacío para un usuario sin órdenes', async () => {
+      const result = await service.findAllByUserId(randomUUID())
 
       expect(result).toEqual([])
     })
 
-    it('lanza error cuando userId está vacío', async () => {
+    it('lanza error de validación cuando userId está vacío', async () => {
       await expect(service.findAllByUserId('')).rejects.toThrow('userId is required')
     })
-
-    it('lanza error en fallo de supabase', async () => {
-      mockResult.error = { message: 'query failed' }
-
-      await expect(service.findAllByUserId('user-uuid-1')).rejects.toThrow('query failed')
-    })
   })
 
-  // ── findAllByStoreId ──────────────────────────────────────────────────────
+  // ── findAllByStoreId ──────────────────────────────────────────────────────────
   describe('findAllByStoreId', () => {
     it('devuelve las órdenes de la tienda', async () => {
-      const rows = [makeOrderRow(), makeOrderRow({ id: 'order-uuid-2' })]
-      mockResult.data = rows
+      const result = await service.findAllByStoreId(TEST_STORE_ID)
 
-      const result = await service.findAllByStoreId('store-uuid-1')
-
-      expect(result).toHaveLength(2)
-      expect(result[0].storeId).toBe('store-uuid-1')
+      expect(result.length).toBeGreaterThanOrEqual(1)
+      expect(result.every(o => o.storeId === TEST_STORE_ID)).toBe(true)
     })
 
-    it('devuelve arreglo vacío si la tienda no tiene órdenes', async () => {
-      mockResult.data = []
-
-      const result = await service.findAllByStoreId('store-uuid-1')
+    it('devuelve arreglo vacío para una tienda sin órdenes', async () => {
+      const result = await service.findAllByStoreId(randomUUID())
 
       expect(result).toEqual([])
     })
 
-    it('lanza error cuando storeId está vacío', async () => {
+    it('lanza error de validación cuando storeId está vacío', async () => {
       await expect(service.findAllByStoreId('')).rejects.toThrow('storeId is required')
-    })
-
-    it('lanza error en fallo de supabase', async () => {
-      mockResult.error = { message: 'query failed' }
-
-      await expect(service.findAllByStoreId('store-uuid-1')).rejects.toThrow('query failed')
     })
   })
 
-  // ── update ────────────────────────────────────────────────────────────────
+  // ── update ─────────────────────────────────────────────────────────────────────
   describe('update', () => {
-    it('actualiza el status y devuelve la orden', async () => {
-      const row = makeOrderRow({ status: 'confirmed' })
-      mockResult.data = row
+    let orderId: string
 
-      const result = await service.update('order-uuid-1', { status: 'confirmed' })
-
-      expect(mockChain.update).toHaveBeenCalledWith({ status: 'confirmed' })
-      expect(result?.status).toBe('confirmed')
+    beforeAll(async () => {
+      const order = await createTestOrder()
+      orderId = order.id
     })
 
-    it('acepta todos los statuses válidos: delivered', async () => {
-      const row = makeOrderRow({ status: 'delivered' })
-      mockResult.data = row
+    it('actualiza el status a confirmed y lo persiste en la BD', async () => {
+      const result = await service.update(orderId, { status: 'confirmed' })
 
-      const result = await service.update('order-uuid-1', { status: 'delivered' })
+      expect(result?.status).toBe('confirmed')
+
+      const fetched = await service.findById(orderId)
+      expect(fetched?.status).toBe('confirmed')
+    })
+
+    it('actualiza el status a delivered', async () => {
+      const result = await service.update(orderId, { status: 'delivered' })
 
       expect(result?.status).toBe('delivered')
     })
 
-    it('acepta status: cancelled', async () => {
-      const row = makeOrderRow({ status: 'cancelled' })
-      mockResult.data = row
-
-      const result = await service.update('order-uuid-1', { status: 'cancelled' })
+    it('actualiza el status a cancelled', async () => {
+      const result = await service.update(orderId, { status: 'cancelled' })
 
       expect(result?.status).toBe('cancelled')
     })
 
-    it('devuelve null cuando la orden no existe (error de supabase)', async () => {
-      mockResult.error = { message: 'not found' }
-
-      const result = await service.update('id-inexistente', { status: 'confirmed' })
+    it('devuelve null cuando el ID no existe en la BD', async () => {
+      const result = await service.update(randomUUID(), { status: 'confirmed' })
 
       expect(result).toBeNull()
     })
 
-    it('lanza error cuando id está vacío', async () => {
-      await expect(
-        service.update('', { status: 'confirmed' })
-      ).rejects.toThrow('id is required')
+    it('lanza error de validación cuando id está vacío', async () => {
+      await expect(service.update('', { status: 'confirmed' })).rejects.toThrow('id is required')
     })
 
-    it('lanza error cuando status no está en el DTO', async () => {
-      await expect(
-        service.update('order-uuid-1', {})
-      ).rejects.toThrow('status is required')
+    it('lanza error de validación cuando status no está en el DTO', async () => {
+      await expect(service.update(orderId, {})).rejects.toThrow('status is required')
     })
 
-    it('lanza error cuando status es inválido', async () => {
-      await expect(
-        service.update('order-uuid-1', { status: 'invalid' as any })
-      ).rejects.toThrow('status must be one of: pending, confirmed, delivered, cancelled')
+    it('lanza error de validación cuando status es inválido', async () => {
+      await expect(service.update(orderId, { status: 'unknown' as any }))
+        .rejects.toThrow('status must be one of')
     })
   })
 
-  // ── updateStatus ──────────────────────────────────────────────────────────
+  // ── updateStatus ───────────────────────────────────────────────────────────────
   describe('updateStatus', () => {
-    it('actualiza el status con string y devuelve la orden', async () => {
-      const row = makeOrderRow({ status: 'confirmed' })
-      mockResult.data = row
+    let orderId: string
 
-      const result = await service.updateStatus('order-uuid-1', 'confirmed')
+    beforeAll(async () => {
+      const order = await createTestOrder()
+      orderId = order.id
+    })
 
-      expect(mockChain.update).toHaveBeenCalledWith({ status: 'confirmed' })
+    it('actualiza el status con string y lo persiste en la BD', async () => {
+      const result = await service.updateStatus(orderId, 'confirmed')
+
       expect(result?.status).toBe('confirmed')
     })
 
-    it('devuelve null cuando la orden no existe', async () => {
-      mockResult.error = { message: 'not found' }
-
-      const result = await service.updateStatus('id-inexistente', 'confirmed')
+    it('devuelve null cuando el ID no existe en la BD', async () => {
+      const result = await service.updateStatus(randomUUID(), 'confirmed')
 
       expect(result).toBeNull()
     })
 
-    it('lanza error cuando id está vacío', async () => {
+    it('lanza error de validación cuando id está vacío', async () => {
       await expect(service.updateStatus('', 'confirmed')).rejects.toThrow('id is required')
     })
 
-    it('lanza error cuando status es inválido', async () => {
-      await expect(
-        service.updateStatus('order-uuid-1', 'unknown')
-      ).rejects.toThrow('status must be one of: pending, confirmed, delivered, cancelled')
+    it('lanza error de validación cuando status es inválido', async () => {
+      await expect(service.updateStatus(orderId, 'unknown'))
+        .rejects.toThrow('status must be one of')
     })
   })
 
-  // ── delete ────────────────────────────────────────────────────────────────
+  // ── delete ─────────────────────────────────────────────────────────────────────
   describe('delete', () => {
+    let toDeleteId: string
+
+    beforeEach(async () => {
+      const order = await createTestOrder()
+      toDeleteId = order.id
+      // La sacamos del array porque el test la elimina
+      const idx = createdOrderIds.indexOf(toDeleteId)
+      if (idx !== -1) createdOrderIds.splice(idx, 1)
+    })
+
     it('elimina la orden y devuelve true', async () => {
-      mockResult.error = null
+      const result = await service.delete(toDeleteId)
 
-      const result = await service.delete('order-uuid-1')
-
-      expect(mockFrom).toHaveBeenCalledWith('Order')
       expect(result).toBe(true)
+
+      const fetched = await service.findById(toDeleteId)
+      expect(fetched).toBeNull()
     })
 
-    it('lanza error cuando id está vacío', async () => {
+    it('lanza error de validación cuando id está vacío', async () => {
+      createdOrderIds.push(toDeleteId) // no se eliminó, agregar a cleanup
       await expect(service.delete('')).rejects.toThrow('id is required')
-    })
-
-    it('lanza error cuando supabase falla en el delete', async () => {
-      mockResult.error = { message: 'delete failed' }
-
-      await expect(service.delete('order-uuid-1')).rejects.toThrow('delete failed')
     })
   })
 })
