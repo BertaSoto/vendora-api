@@ -8,12 +8,18 @@ importers:
 
   .:
     devDependencies:
+      '@prisma/client':
+        specifier: ^7.5.0
+        version: 7.8.0(prisma@7.8.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(magicast@0.5.3)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@5.9.3))(typescript@5.9.3)
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.20
       '@vendora/database':
         specifier: workspace:*
         version: link:packages/database
+      dotenv:
+        specifier: ^17.3.1
+        version: 17.4.2
       prisma:
         specifier: ^7.5.0
         version: 7.8.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(magicast@0.5.3)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@5.9.3)
@@ -184,6 +190,9 @@ importers:
       '@hono/node-server':
         specifier: ^1.13.0
         version: 1.19.14(hono@4.12.25)
+      '@hono/swagger-ui':
+        specifier: ^0.6.1
+        version: 0.6.1(hono@4.12.25)
       '@supabase/supabase-js':
         specifier: ^2.105.4
         version: 2.108.1
@@ -199,6 +208,12 @@ importers:
       ws:
         specifier: ^8.18.0
         version: 8.21.0
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+      zod-to-json-schema:
+        specifier: ^3.25.2
+        version: 3.25.2(zod@4.4.3)
     devDependencies:
       '@types/node':
         specifier: ^22.19.15
@@ -230,6 +245,9 @@ importers:
       '@hono/node-server':
         specifier: ^1.13.0
         version: 1.19.14(hono@4.12.25)
+      '@hono/swagger-ui':
+        specifier: ^0.6.1
+        version: 0.6.1(hono@4.12.25)
       '@supabase/supabase-js':
         specifier: ^2.105.4
         version: 2.108.1
@@ -245,6 +263,12 @@ importers:
       ws:
         specifier: ^8.18.0
         version: 8.21.0
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+      zod-to-json-schema:
+        specifier: ^3.25.2
+        version: 3.25.2(zod@4.4.3)
     devDependencies:
       '@types/node':
         specifier: ^22.19.15
@@ -276,6 +300,9 @@ importers:
       '@hono/node-server':
         specifier: ^1.13.0
         version: 1.19.14(hono@4.12.25)
+      '@hono/swagger-ui':
+        specifier: ^0.6.1
+        version: 0.6.1(hono@4.12.25)
       '@supabase/supabase-js':
         specifier: ^2.105.4
         version: 2.108.1
@@ -291,6 +318,12 @@ importers:
       ws:
         specifier: ^8.18.0
         version: 8.21.0
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+      zod-to-json-schema:
+        specifier: ^3.25.2
+        version: 3.25.2(zod@4.4.3)
     devDependencies:
       '@types/node':
         specifier: ^22.19.15
@@ -541,6 +574,11 @@ packages:
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
+
+  '@hono/swagger-ui@0.6.1':
+    resolution: {integrity: sha512-sJTvldu1GPeEPfyeLG7gRj+W4vEuD+JDi+JjJ3TJs/DvMUtBLs0KJO5yokGegWWdy5qrbdnQGekbhgNRmPmYKQ==}
+    peerDependencies:
+      hono: '>=4.0.0'
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -2219,6 +2257,14 @@ packages:
   zeptomatch@2.1.0:
     resolution: {integrity: sha512-KiGErG2J0G82LSpniV0CtIzjlJ10E04j02VOudJsPyPwNZgGnRKQy7I1R7GMyg/QswnE4l7ohSGrQbQbjXPPDA==}
 
+  zod-to-json-schema@3.25.2:
+    resolution: {integrity: sha512-O/PgfnpT1xKSDeQYSCfRI5Gy3hPf91mKVDuYLUHZJMiDFptvP41MSnWofm8dnCm0256ZNfZIM7DSzuSMAFnjHA==}
+    peerDependencies:
+      zod: ^3.25.28 || ^4
+
+  zod@4.4.3:
+    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
+
 snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
@@ -2356,6 +2402,10 @@ snapshots:
       hono: 4.12.25
 
   '@hono/node-server@1.19.14(hono@4.12.25)':
+    dependencies:
+      hono: 4.12.25
+
+  '@hono/swagger-ui@0.6.1(hono@4.12.25)':
     dependencies:
       hono: 4.12.25
 
@@ -3864,3 +3914,9 @@ snapshots:
     dependencies:
       grammex: 3.1.12
       graphmatch: 1.1.1
+
+  zod-to-json-schema@3.25.2(zod@4.4.3):
+    dependencies:
+      zod: 4.4.3
+
+  zod@4.4.3: {}
