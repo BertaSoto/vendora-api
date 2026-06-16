@@ -8,7 +8,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "echo lint-order-service",
     "test": "vitest",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:integration:coverage": "vitest run --config vitest.integration.config.ts --coverage"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.0",
