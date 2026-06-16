@@ -7,15 +7,20 @@
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "lint": "echo lint-order-service",
-    "test": "echo test-order-service"
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:integration:coverage": "vitest run --config vitest.integration.config.ts --coverage"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.0",
+    "@hono/swagger-ui": "^0.6.1",
     "@supabase/supabase-js": "^2.105.4",
     "@vendora/auth-middleware": "workspace:*",
     "dotenv": "^17.3.1",
     "hono": "^4.12.8",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "zod": "^4.4.3"
   },
   "engines": {
     "node": "22.x"
@@ -23,7 +28,11 @@
   "devDependencies": {
     "@types/node": "^22.19.15",
     "@types/ws": "^8.18.1",
+    "@vitest/coverage-v8": "^4.1.8",
+    "@vitest/ui": "^4.1.8",
+    "happy-dom": "^20.10.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.8"
   }
 }
