@@ -2,5 +2,5 @@
   "framework": "nextjs",
   "buildCommand": "pnpm run build --filter=vendora-frontend",
   "outputDirectory": "apps/frontend/.next",
-  "installCommand": "corepack enable && pnpm install --frozen-lockfile"
+  "installCommand": "corepack enable && corepack prepare pnpm@9.15.9 --activate && pnpm install --frozen-lockfile"
 }
