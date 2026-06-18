@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 import { serve } from '@hono/node-server'
 import { swaggerUI } from '@hono/swagger-ui'
 import storeRoutes from './routes/store.routes.js'
@@ -25,6 +26,15 @@ if (envPath) {
 }
 
 const app = new Hono()
+
+app.use('*', cors({
+  origin: [
+    'https://vendora-frontend-xi.vercel.app',
+    'http://localhost:3000',
+  ],
+  allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+}))
 
 app.get('/health', (c) => {
   return c.json({
