@@ -39,12 +39,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 7.5.0
- * Query Engine version: 280c870be64f457428992c43c1f6d557fab6e29e
+ * Prisma Client JS version: 7.8.0
+ * Query Engine version: 3c6e192761c0362d496ed980de936e2f3cebcd3a
  */
 Prisma.prismaVersion = {
-  client: "7.5.0",
-  engine: "280c870be64f457428992c43c1f6d557fab6e29e"
+  client: "7.8.0",
+  engine: "3c6e192761c0362d496ed980de936e2f3cebcd3a"
 }
 
 Prisma.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
@@ -147,8 +147,8 @@ exports.Prisma.ModelName = {
  */
 const config = {
   "previewFeatures": [],
-  "clientVersion": "7.5.0",
-  "engineVersion": "280c870be64f457428992c43c1f6d557fab6e29e",
+  "clientVersion": "7.8.0",
+  "engineVersion": "3c6e192761c0362d496ed980de936e2f3cebcd3a",
   "activeProvider": "postgresql",
   "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"./generated\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nenum UserRole {\n  MERCHANT\n  CUSTOMER\n  ADMIN\n}\n\nenum StoreStatus {\n  ACTIVE\n  SUSPENDED\n  TRIAL\n}\n\nmodel User {\n  id        String   @id @default(uuid())\n  email     String   @unique\n  fullName  String?\n  role      UserRole @default(MERCHANT)\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  stores Store[]\n}\n\nmodel Store {\n  id          String      @id @default(uuid())\n  merchantId  String\n  name        String\n  slug        String      @unique\n  description String?\n  status      StoreStatus @default(TRIAL)\n  createdAt   DateTime    @default(now())\n  updatedAt   DateTime    @updatedAt\n\n  merchant User @relation(fields: [merchantId], references: [id])\n}\n"
 }

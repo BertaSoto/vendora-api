@@ -5,6 +5,7 @@ dist
 # Build & Cache
 .turbo
 prisma/generated
+coverage
 
 # Environment
 .env

@@ -14,8 +14,10 @@
     "test": "turbo run test"
   },
   "devDependencies": {
+    "@prisma/client": "^7.5.0",
     "@types/node": "^22.0.0",
     "@vendora/database": "workspace:*",
+    "dotenv": "^17.3.1",
     "prisma": "^7.5.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.0",
