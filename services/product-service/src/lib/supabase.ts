@@ -11,9 +11,11 @@ function getClient(): SupabaseClient {
   if (client) return client
 
   if (!process.env.SUPABASE_URL) {
+    console.error('[product-service] SUPABASE_URL is not configured')
     throw new Error('SUPABASE_URL is required. Asegurate de configurarlo en tu .env.')
   }
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('[product-service] SUPABASE_SERVICE_ROLE_KEY is not configured')
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is required. Asegurate de configurarlo en tu .env.')
   }
 
@@ -22,7 +24,7 @@ function getClient(): SupabaseClient {
     console.log('[product-service] SUPABASE_URL_HOST:', url.host)
     console.log('[product-service] SUPABASE_URL_PROTOCOL:', url.protocol)
   } catch {
-    console.error('[product-service] SUPABASE_URL is invalid:', process.env.SUPABASE_URL)
+    console.error('[product-service] SUPABASE_URL is invalid (check format: https://<ref>.supabase.co)')
   }
 
   client = createClient(
