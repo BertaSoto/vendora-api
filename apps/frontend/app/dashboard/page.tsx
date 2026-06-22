@@ -10,6 +10,7 @@ import {
   Plus,
 } from 'lucide-react'
 import { storesApi } from '@/api/stores'
+import { dashboardApi } from '@/api/dashboard'
 import { KpiCard } from '@/components/kpi-card'
 import { KpiSkeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/ui/error-state'
@@ -20,18 +21,26 @@ import type { Store as StoreType } from '@/types'
 export default function DashboardPage() {
   const router = useRouter()
   const [stores, setStores] = useState<StoreType[]>([])
+  const [totalProducts, setTotalProducts] = useState<number | null>(null)
+  const [totalOrders, setTotalOrders] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    loadStores()
+    loadDashboard()
   }, [])
 
-  async function loadStores() {
+  async function loadDashboard() {
     setLoading(true)
     try {
-      const data = await storesApi.list()
-      setStores(data)
+      const storesData = await storesApi.list()
+      setStores(storesData)
+
+      const summaries = await Promise.all(
+        storesData.map((s) => dashboardApi.get(s.id)),
+      )
+      setTotalProducts(summaries.reduce((sum, d) => sum + d.summary.productsCount, 0))
+      setTotalOrders(summaries.reduce((sum, d) => sum + d.summary.ordersCount, 0))
       setError(null)
     } catch (err) {
       setError((err as Error).message)
@@ -42,7 +51,7 @@ export default function DashboardPage() {
 
   const activeStores = stores.filter((s) => s.status === 'ACTIVE').length
 
-  if (error) return <ErrorState message={error} onRetry={loadStores} />
+  if (error) return <ErrorState message={error} onRetry={loadDashboard} />
 
   return (
     <div>
@@ -71,12 +80,12 @@ export default function DashboardPage() {
           />
           <KpiCard
             title="Total Productos"
-            value="—"
+            value={totalProducts ?? '—'}
             icon={Package}
           />
           <KpiCard
             title="Total Órdenes"
-            value="—"
+            value={totalOrders ?? '—'}
             icon={ShoppingCart}
           />
         </div>
