@@ -11,7 +11,7 @@ prisma/generated
 .env.local
 .env.*.local
 
-# IDE & Tools
+# IDE & Toolsz
 .vscode/
 .idea/
 *.swp
