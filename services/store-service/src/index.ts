@@ -9,6 +9,22 @@ import { swaggerUI } from '@hono/swagger-ui'
 import storeRoutes from './routes/store.routes.js'
 import { buildStoreOpenAPISpec } from './docs/openapi.js'
 
+const currentFile = fileURLToPath(import.meta.url)
+const packageDir = dirname(dirname(currentFile))
+const repoRoot = dirname(dirname(packageDir))
+
+const envFiles = [
+  join(repoRoot, '.env'),
+  join(repoRoot, '.env.local'),
+  join(packageDir, '.env'),
+]
+
+for (const envFile of envFiles) {
+  if (existsSync(envFile)) {
+    config({ path: envFile, override: true })
+  }
+}
+
 const app = new Hono()
 
 app.use('*', async (c, next) => {
