@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Trash2, MoreHorizontal } from 'lucide-react'
 import { Button } from './ui/button'
 import { Badge, statusBadgeVariant, statusLabel } from './ui/badge'
@@ -66,6 +67,33 @@ function OrderRow({
   onUpdateStatus: (id: string, status: string) => void
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({})
+
+  useEffect(() => {
+    if (!menuOpen) return
+
+    function updatePosition() {
+      if (triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect()
+        setMenuStyle({
+          position: 'fixed',
+          top: rect.bottom + 4,
+          right: window.innerWidth - rect.right,
+          zIndex: 50,
+        })
+      }
+    }
+
+    updatePosition()
+    window.addEventListener('scroll', updatePosition, true)
+    window.addEventListener('resize', updatePosition)
+
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true)
+      window.removeEventListener('resize', updatePosition)
+    }
+  }, [menuOpen])
 
   return (
     <tr className="hover:bg-slate-50/50 transition-colors">
@@ -87,20 +115,24 @@ function OrderRow({
         {new Date(order.createdAt).toLocaleDateString('es-ES')}
       </td>
       <td className="px-5 py-3.5 text-right">
-        <div className="relative inline-block">
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </button>
-          {menuOpen && (
+        <button
+          ref={triggerRef}
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+        >
+          <MoreHorizontal className="h-4 w-4" />
+        </button>
+        {menuOpen &&
+          createPortal(
             <>
               <div
-                className="fixed inset-0 z-10"
+                className="fixed inset-0 z-40"
                 onClick={() => setMenuOpen(false)}
               />
-              <div className="absolute right-0 z-20 mt-1 w-44 rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+              <div
+                style={menuStyle}
+                className="w-44 rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+              >
                 <div className="px-3 py-1.5 text-xs font-semibold text-slate-400">
                   Cambiar estado
                 </div>
@@ -135,9 +167,9 @@ function OrderRow({
                   </button>
                 </div>
               </div>
-            </>
+            </>,
+            document.body,
           )}
-        </div>
       </td>
     </tr>
   )
