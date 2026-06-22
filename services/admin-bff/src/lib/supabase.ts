@@ -11,9 +11,11 @@ function getClient(): SupabaseClient {
   if (client) return client
 
   if (!process.env.SUPABASE_URL) {
+    console.error('[admin-bff] SUPABASE_URL is not configured')
     throw new Error('SUPABASE_URL is required. Asegurate de configurarlo en tu .env.')
   }
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('[admin-bff] SUPABASE_SERVICE_ROLE_KEY is not configured')
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is required. Asegurate de configurarlo en tu .env.')
   }
 
