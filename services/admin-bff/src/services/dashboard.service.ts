@@ -22,36 +22,42 @@ export class DashboardService {
     }
   }
 
-  private async fetchProductSummary(storeId: string): Promise<DashboardSummary> {
+  private async fetchSummary(storeId: string): Promise<DashboardSummary> {
     const { data, error } = await supabase
       .from('Product')
       .select('stock')
       .eq('store_id', storeId)
 
     if (error) {
-      return { productsCount: 0, lowStockProducts: 0, pendingOrders: 0 }
+      return { productsCount: 0, ordersCount: 0, lowStockProducts: 0, pendingOrders: 0 }
     }
 
     const products = data as { stock: number }[]
     const productsCount = products.length
     const lowStockProducts = products.filter(p => p.stock < LOW_STOCK_THRESHOLD).length
 
-    const { count: pendingOrders, error: orderError } = await supabase
+    const { count: ordersCount, error: orderError } = await supabase
+      .from('Order')
+      .select('id', { count: 'exact', head: true })
+      .eq('store_id', storeId)
+
+    const { count: pendingOrders, error: pendingError } = await supabase
       .from('Order')
       .select('id', { count: 'exact', head: true })
       .eq('store_id', storeId)
       .eq('status', 'pending')
 
-    if (orderError) {
-      return { productsCount, lowStockProducts, pendingOrders: 0 }
+    return {
+      productsCount,
+      ordersCount: orderError ? 0 : (ordersCount ?? 0),
+      lowStockProducts,
+      pendingOrders: pendingError ? 0 : (pendingOrders ?? 0),
     }
-
-    return { productsCount, lowStockProducts, pendingOrders: pendingOrders ?? 0 }
   }
 
   async getDashboard(storeId: string): Promise<DashboardResponse> {
     const store = await this.fetchStore(storeId)
-    const summary = await this.fetchProductSummary(storeId)
+    const summary = await this.fetchSummary(storeId)
 
     return { store, summary }
   }

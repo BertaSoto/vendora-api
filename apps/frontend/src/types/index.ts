@@ -14,6 +14,7 @@ export interface Store {
 
 export interface DashboardSummary {
   productsCount: number
+  ordersCount: number
   lowStockProducts: number
   pendingOrders: number
 }
