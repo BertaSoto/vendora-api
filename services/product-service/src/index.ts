@@ -1,11 +1,26 @@
 import 'dotenv/config'
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 import { serve } from '@hono/node-server'
 import { swaggerUI } from '@hono/swagger-ui'
 import productRoutes from './routes/product.routes.js'
 import { buildProductOpenAPISpec } from './docs/openapi.js'
 
 const app = new Hono()
+
+app.use('*', async (c, next) => {
+  console.info(`[request] ${c.req.method} ${c.req.url}`)
+  await next()
+})
+
+app.use('*', cors({
+  origin: [
+    'https://vendora-frontend-xi.vercel.app',
+    'http://localhost:5173',
+  ],
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+}))
 
 app.get('/health', (c) => {
   return c.json({

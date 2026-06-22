@@ -7,9 +7,15 @@ import type { ApiSuccessResponse, HealthData } from './types/auth.type.js'
 
 const app = new Hono()
 
+app.use('*', async (c, next) => {
+  console.info(`[request] ${c.req.method} ${c.req.url}`)
+  await next()
+})
+
 app.use('*', cors({
   origin: [
     'https://vendora-frontend-xi.vercel.app',
+    'http://localhost:5173',
     'http://localhost:3000',
   ],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

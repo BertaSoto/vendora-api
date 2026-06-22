@@ -3,28 +3,27 @@ import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 import { serve } from '@hono/node-server'
 import { swaggerUI } from '@hono/swagger-ui'
 import storeRoutes from './routes/store.routes.js'
 import { buildStoreOpenAPISpec } from './docs/openapi.js'
 
-const currentFile = fileURLToPath(import.meta.url)
-const packageDir = dirname(dirname(currentFile))
-const repoRoot = dirname(dirname(packageDir))
-const envPaths = [
-  join(repoRoot, '.env.local'),
-  join(repoRoot, '.env'),
-  join(packageDir, '.env'),
-]
-const envPath = envPaths.find((path) => existsSync(path))
-
-if (envPath) {
-  config({ path: envPath })
-} else {
-  config()
-}
-
 const app = new Hono()
+
+app.use('*', async (c, next) => {
+  console.info(`[request] ${c.req.method} ${c.req.url}`)
+  await next()
+})
+
+app.use('*', cors({
+  origin: [
+    'https://vendora-frontend-xi.vercel.app',
+    'http://localhost:5173',
+  ],
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+}))
 
 app.get('/health', (c) => {
   return c.json({
