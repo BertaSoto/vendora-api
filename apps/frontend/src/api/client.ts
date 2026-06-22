@@ -41,10 +41,16 @@ function getAuthHeaders(): Record<string, string> {
 
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const url = resolveUrl(path)
+  const method = options?.method ?? 'GET'
+
+  console.info(`[apiFetch] ${method} ${url}`)
+
   const res = await fetch(url, {
     headers: { ...getAuthHeaders(), ...options?.headers },
     ...options,
   })
+
+  console.info(`[apiFetch] ${method} ${url} → ${res.status}`)
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: res.statusText }))
