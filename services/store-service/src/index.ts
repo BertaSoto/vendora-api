@@ -12,17 +12,17 @@ import { buildStoreOpenAPISpec } from './docs/openapi.js'
 const currentFile = fileURLToPath(import.meta.url)
 const packageDir = dirname(dirname(currentFile))
 const repoRoot = dirname(dirname(packageDir))
-const envPaths = [
-  join(repoRoot, '.env.local'),
+
+const envFiles = [
   join(repoRoot, '.env'),
+  join(repoRoot, '.env.local'),
   join(packageDir, '.env'),
 ]
-const envPath = envPaths.find((path) => existsSync(path))
 
-if (envPath) {
-  config({ path: envPath })
-} else {
-  config()
+for (const envFile of envFiles) {
+  if (existsSync(envFile)) {
+    config({ path: envFile, override: true })
+  }
 }
 
 const app = new Hono()
