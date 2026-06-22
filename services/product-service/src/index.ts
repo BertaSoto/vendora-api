@@ -15,10 +15,12 @@ app.use('*', async (c, next) => {
 
 app.use('*', cors({
   origin: [
-    'https://vendora-frontend-xi.vercel.app',
     'http://localhost:5173',
+    'http://192.168.1.17:5173',
+    'https://vendora-frontend.vercel.app',
+    'https://vendora-frontend-xi.vercel.app',
   ],
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
 }))
 
