@@ -16,10 +16,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [router])
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-zinc-50">
       <Sidebar />
-      <main className="pl-[240px] transition-all duration-200">
-        <div className="mx-auto max-w-7xl px-6 py-8">{children}</div>
+      <main className="pl-[64px] transition-all duration-200 lg:pl-[240px]">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          {children}
+        </div>
       </main>
     </div>
   )
