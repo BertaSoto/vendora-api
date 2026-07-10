@@ -8,9 +8,11 @@ interface ErrorStateProps {
 
 export function ErrorState({ message, onRetry }: ErrorStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50 px-6 py-12 text-center">
-      <AlertTriangle className="mb-3 h-10 w-10 text-red-400" />
-      <p className="text-sm font-medium text-red-700">{message}</p>
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-rose-200 bg-rose-50/50 px-6 py-14 text-center">
+      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100">
+        <AlertTriangle className="h-6 w-6 text-rose-500" />
+      </div>
+      <p className="text-sm font-medium text-rose-700">{message}</p>
       {onRetry && (
         <Button variant="outline" size="sm" onClick={onRetry} className="mt-4">
           Reintentar

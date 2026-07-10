@@ -96,14 +96,14 @@ export default function TiendasPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Tiendas</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {stores.length} {stores.length === 1 ? 'tienda' : 'tiendas'}
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">Tiendas</h1>
+          <p className="mt-0.5 text-sm text-slate-500">
+            {stores.length} {stores.length === 1 ? 'tienda registrada' : 'tiendas registradas'}
           </p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)}>
+        <Button onClick={() => setShowForm(!showForm)} size="lg">
           {showForm ? (
             <>
               <X className="h-4 w-4" />
@@ -119,7 +119,7 @@ export default function TiendasPage() {
       </div>
 
       {showForm && (
-        <Card className="mb-6">
+        <Card className="mb-8">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <h2 className="text-sm font-semibold text-slate-700">
               {editingId ? 'Editar tienda' : 'Nueva tienda'}
@@ -159,10 +159,10 @@ export default function TiendasPage() {
         </div>
       ) : !error && stores.length === 0 ? (
         <EmptyState
-          title="No hay tiendas"
+          title="No hay tiendas todavía"
           description="Crea tu primera tienda para empezar a gestionar productos y órdenes."
           action={
-            <Button onClick={() => setShowForm(true)}>
+            <Button onClick={() => setShowForm(true)} size="lg">
               <Plus className="h-4 w-4" />
               Nueva tienda
             </Button>

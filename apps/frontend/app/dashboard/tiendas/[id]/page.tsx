@@ -182,7 +182,7 @@ export default function TiendaDetailPage() {
     <div>
       <Link
         href="/dashboard/tiendas"
-        className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-brand-600 transition-colors"
+        className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-brand-600 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Volver a tiendas
@@ -190,7 +190,9 @@ export default function TiendaDetailPage() {
 
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">{store.name}</h1>
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">
+            {store.name}
+          </h1>
           {store.description && (
             <p className="mt-1 text-sm text-slate-500">{store.description}</p>
           )}
@@ -199,34 +201,48 @@ export default function TiendaDetailPage() {
           {statusLabel(store.status)}
         </Badge>
       </div>
-      <p className="-mt-4 mb-6 text-xs text-slate-400 font-mono">Slug: {store.slug}</p>
+      <p className="-mt-4 mb-6 text-xs text-slate-400 font-mono">
+        /{store.slug}
+      </p>
 
-      <div className="mb-6 flex border-b border-slate-200">
+      <div className="mb-8 flex border-b border-slate-200">
         <button
           onClick={() => setTab('products')}
-          className={`px-5 py-3 text-sm font-semibold border-b-2 transition-colors ${
+          className={`relative px-5 py-3 text-sm font-semibold transition-colors ${
             tab === 'products'
-              ? 'border-brand-600 text-brand-700'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
+              ? 'text-brand-700'
+              : 'text-slate-500 hover:text-slate-700'
           }`}
         >
-          Productos ({products.length})
+          Productos
+          <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-slate-100 px-1.5 text-xs font-semibold text-slate-500">
+            {products.length}
+          </span>
+          {tab === 'products' && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-brand-600" />
+          )}
         </button>
         <button
           onClick={() => setTab('orders')}
-          className={`px-5 py-3 text-sm font-semibold border-b-2 transition-colors ${
+          className={`relative px-5 py-3 text-sm font-semibold transition-colors ${
             tab === 'orders'
-              ? 'border-brand-600 text-brand-700'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
+              ? 'text-brand-700'
+              : 'text-slate-500 hover:text-slate-700'
           }`}
         >
-          Órdenes ({orders.length})
+          Órdenes
+          <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-slate-100 px-1.5 text-xs font-semibold text-slate-500">
+            {orders.length}
+          </span>
+          {tab === 'orders' && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-brand-600" />
+          )}
         </button>
       </div>
 
       {tab === 'products' && (
         <div>
-          <div className="mb-4">
+          <div className="mb-6">
             <Button onClick={() => setShowProductForm(!showProductForm)}>
               {showProductForm ? (
                 <>
@@ -241,14 +257,14 @@ export default function TiendaDetailPage() {
           </div>
 
           {showProductForm && (
-            <Card className="mb-6">
+            <Card className="mb-8">
               <form onSubmit={handleProductSubmit} className="flex flex-col gap-4">
                 <h2 className="text-sm font-semibold text-slate-700">
                   {editingProductId ? 'Editar producto' : 'Nuevo producto'}
                 </h2>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <Input
-                    placeholder="Nombre"
+                    placeholder="Nombre del producto"
                     value={productForm.name}
                     onChange={(e) =>
                       setProductForm((p) => ({ ...p, name: e.target.value }))
@@ -263,7 +279,7 @@ export default function TiendaDetailPage() {
                     }
                   />
                   <Input
-                    placeholder="Precio"
+                    placeholder="Precio (CLP)"
                     type="number"
                     min="0"
                     step="1"
@@ -274,7 +290,7 @@ export default function TiendaDetailPage() {
                     required
                   />
                   <Input
-                    placeholder="Stock"
+                    placeholder="Stock inicial"
                     type="number"
                     min="0"
                     value={productForm.stock}
@@ -290,7 +306,7 @@ export default function TiendaDetailPage() {
                       ? 'Guardando...'
                       : editingProductId
                         ? 'Actualizar'
-                        : 'Crear'}
+                        : 'Crear producto'}
                   </Button>
                 </div>
               </form>
@@ -299,8 +315,8 @@ export default function TiendaDetailPage() {
 
           {products.length === 0 ? (
             <EmptyState
-              title="No hay productos"
-              description="Crea tu primer producto en esta tienda."
+              title="No hay productos todavía"
+              description="Crea tu primer producto en esta tienda para empezar a recibir órdenes."
               action={
                 <Button onClick={() => setShowProductForm(true)}>
                   <Plus className="h-4 w-4" /> Nuevo producto
@@ -331,8 +347,8 @@ export default function TiendaDetailPage() {
         <div>
           {orders.length === 0 ? (
             <EmptyState
-              title="No hay órdenes"
-              description="Crea productos y genera órdenes desde la pestaña de productos."
+              title="No hay órdenes todavía"
+              description="Las órdenes aparecerán aquí cuando los clientes realicen compras en tu tienda."
             />
           ) : (
             <OrdersTable

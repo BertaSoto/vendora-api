@@ -20,12 +20,17 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+    <main className="flex min-h-screen items-center justify-center bg-zinc-50 px-4">
+      <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-brand-600">Vendora</h1>
-          <p className="mt-2 text-sm text-slate-500">
-            Inicia sesión para continuar
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600">
+            <span className="text-lg font-bold text-white">V</span>
+          </div>
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">
+            Iniciar sesión
+          </h1>
+          <p className="mt-1.5 text-sm text-slate-500">
+            Ingresa a tu panel de Vendora
           </p>
         </div>
 
@@ -43,7 +48,7 @@ export default function LoginPage() {
                 clearError()
               }}
               required
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 transition-all duration-150 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             />
           </div>
 
@@ -60,12 +65,12 @@ export default function LoginPage() {
                 clearError()
               }}
               required
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 transition-all duration-150 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             />
           </div>
 
           {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+            <p className="rounded-xl bg-rose-50 px-3.5 py-2.5 text-sm text-rose-600">
               {error}
             </p>
           )}
@@ -73,7 +78,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="mt-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-1 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-all duration-150 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isLoading ? 'Ingresando...' : 'Iniciar sesión'}
           </button>
@@ -83,7 +88,7 @@ export default function LoginPage() {
           ¿No tienes cuenta?{' '}
           <Link
             href="/auth/register"
-            className="font-semibold text-brand-600 hover:text-brand-700"
+            className="font-semibold text-brand-600 hover:text-brand-700 transition-colors"
           >
             Regístrate
           </Link>
