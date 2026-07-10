@@ -21,22 +21,22 @@ export function OrdersTable({ orders, onDelete, onUpdateStatus }: OrdersTablePro
         <table className="w-full">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50/80">
-              <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <th className="px-3 py-3 text-left text-[10px] lg:text-xs font-semibold uppercase tracking-wider text-slate-400 lg:px-5 lg:py-3.5">
                 Producto
               </th>
-              <th className="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <th className="px-2 py-3 text-center text-[10px] lg:text-xs font-semibold uppercase tracking-wider text-slate-400 lg:px-5 lg:py-3.5">
                 Cant.
               </th>
-              <th className="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <th className="px-3 py-3 text-right text-[10px] lg:text-xs font-semibold uppercase tracking-wider text-slate-400 lg:px-5 lg:py-3.5">
                 Total
               </th>
-              <th className="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <th className="px-2 py-3 text-center text-[10px] lg:text-xs font-semibold uppercase tracking-wider text-slate-400 lg:px-5 lg:py-3.5">
                 Estado
               </th>
-              <th className="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <th className="px-2 py-3 text-center text-[10px] lg:text-xs font-semibold uppercase tracking-wider text-slate-400 lg:px-5 lg:py-3.5">
                 Fecha
               </th>
-              <th className="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <th className="px-2 py-3 text-right text-[10px] lg:text-xs font-semibold uppercase tracking-wider text-slate-400 lg:px-5 lg:py-3.5">
                 Acciones
               </th>
             </tr>
@@ -97,28 +97,28 @@ function OrderRow({
 
   return (
     <tr className="transition-colors hover:bg-slate-50/50">
-      <td className="px-5 py-4 text-sm font-medium text-slate-900">
+      <td className="px-3 py-3 text-sm font-medium text-slate-900 lg:px-5 lg:py-4">
         {order.productName ?? (
           <span className="text-slate-300">—</span>
         )}
       </td>
-      <td className="px-5 py-4 text-center text-sm text-slate-600">
-        <span className="inline-flex items-center justify-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
+      <td className="px-2 py-3 text-center text-xs lg:text-sm text-slate-600 lg:px-5 lg:py-4">
+        <span className="inline-flex items-center justify-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] lg:text-xs font-semibold text-slate-600">
           x{order.quantity}
         </span>
       </td>
-      <td className="px-5 py-4 text-right text-sm font-semibold text-slate-900 tabular-nums">
+      <td className="px-3 py-3 text-right text-xs lg:text-sm font-semibold text-slate-900 tabular-nums lg:px-5 lg:py-4">
         {formatCLP(order.total)}
       </td>
-      <td className="px-5 py-4 text-center">
+      <td className="px-2 py-3 text-center lg:px-5 lg:py-4">
         <Badge variant={statusBadgeVariant(order.status)}>
           {statusLabel(order.status)}
         </Badge>
       </td>
-      <td className="px-5 py-4 text-center text-xs text-slate-400">
+      <td className="px-2 py-3 text-center text-[10px] lg:text-xs text-slate-400 lg:px-5 lg:py-4">
         {new Date(order.createdAt).toLocaleDateString('es-ES')}
       </td>
-      <td className="px-5 py-4 text-right">
+      <td className="px-2 py-3 text-right lg:px-5 lg:py-4">
         <button
           ref={triggerRef}
           onClick={() => setMenuOpen(!menuOpen)}

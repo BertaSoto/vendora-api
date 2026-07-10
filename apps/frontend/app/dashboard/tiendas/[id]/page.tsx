@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, type FormEvent } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { ArrowLeft, Plus, X } from 'lucide-react'
@@ -22,7 +22,6 @@ import type { Store, Product, Order, OrderStatus } from '@/types'
 
 export default function TiendaDetailPage() {
   const params = useParams<{ id: string }>()
-  const router = useRouter()
   const storeId = params.id
 
   const [store, setStore] = useState<Store | null>(null)
@@ -34,21 +33,14 @@ export default function TiendaDetailPage() {
 
   const [showProductForm, setShowProductForm] = useState(false)
   const [editingProductId, setEditingProductId] = useState<string | null>(null)
-  const [productForm, setProductForm] = useState({
-    name: '',
-    description: '',
-    price: '',
-    stock: '',
-  })
+  const [productForm, setProductForm] = useState({ name: '', description: '', price: '', stock: '' })
   const [saving, setSaving] = useState(false)
 
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleteType, setDeleteType] = useState<'product' | 'order'>('product')
   const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => {
-    loadData()
-  }, [storeId])
+  useEffect(() => { loadData() }, [storeId])
 
   async function loadData() {
     setLoading(true)
@@ -76,12 +68,7 @@ export default function TiendaDetailPage() {
   }
 
   function startEditProduct(p: Product) {
-    setProductForm({
-      name: p.name,
-      description: p.description,
-      price: String(p.price),
-      stock: String(p.stock),
-    })
+    setProductForm({ name: p.name, description: p.description, price: String(p.price), stock: String(p.stock) })
     setEditingProductId(p.id)
     setShowProductForm(true)
   }
@@ -90,12 +77,7 @@ export default function TiendaDetailPage() {
     e.preventDefault()
     setSaving(true)
     try {
-      const dto = {
-        name: productForm.name,
-        description: productForm.description,
-        price: Number(productForm.price),
-        stock: Number(productForm.stock),
-      }
+      const dto = { name: productForm.name, description: productForm.description, price: Number(productForm.price), stock: Number(productForm.stock) }
       if (editingProductId) {
         await productsApi.update(editingProductId, dto)
         toast.success('Producto actualizado')
@@ -105,11 +87,8 @@ export default function TiendaDetailPage() {
       }
       resetProductForm()
       await loadData()
-    } catch (err) {
-      toast.error((err as Error).message)
-    } finally {
-      setSaving(false)
-    }
+    } catch (err) { toast.error((err as Error).message) }
+    finally { setSaving(false) }
   }
 
   async function handleUpdateStock(productId: string, currentStock: number) {
@@ -119,9 +98,7 @@ export default function TiendaDetailPage() {
       await productsApi.updateStock(productId, { stock: Number(newStock) })
       toast.success('Stock actualizado')
       await loadData()
-    } catch (err) {
-      toast.error((err as Error).message)
-    }
+    } catch (err) { toast.error((err as Error).message) }
   }
 
   async function handleCreateOrder(productId: string) {
@@ -131,21 +108,15 @@ export default function TiendaDetailPage() {
       await ordersApi.create({ storeId, productId, quantity: Number(qty) })
       toast.success('Orden creada')
       await loadData()
-    } catch (err) {
-      toast.error((err as Error).message)
-    }
+    } catch (err) { toast.error((err as Error).message) }
   }
 
   async function handleUpdateOrderStatus(orderId: string, status: string) {
     try {
-      await ordersApi.updateStatus(orderId, {
-        status: status as OrderStatus,
-      })
+      await ordersApi.updateStatus(orderId, { status: status as OrderStatus })
       toast.success('Estado actualizado')
       await loadData()
-    } catch (err) {
-      toast.error((err as Error).message)
-    }
+    } catch (err) { toast.error((err as Error).message) }
   }
 
   async function handleDelete() {
@@ -156,21 +127,15 @@ export default function TiendaDetailPage() {
       else await ordersApi.remove(deleteId)
       toast.success(deleteType === 'product' ? 'Producto eliminado' : 'Orden eliminada')
       await loadData()
-    } catch (err) {
-      toast.error((err as Error).message)
-    } finally {
-      setDeleting(false)
-      setDeleteId(null)
-    }
+    } catch (err) { toast.error((err as Error).message) }
+    finally { setDeleting(false); setDeleteId(null) }
   }
 
   if (loading) {
     return (
       <div>
         <CardSkeleton />
-        <div className="mt-6">
-          <TableSkeleton rows={4} />
-        </div>
+        <div className="mt-6"><TableSkeleton rows={4} /></div>
       </div>
     )
   }
@@ -188,9 +153,9 @@ export default function TiendaDetailPage() {
         Volver a tiendas
       </Link>
 
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
+      <div className="mb-4 flex flex-wrap items-center gap-3 lg:mb-6">
+        <div className="min-w-0">
+          <h1 className="text-lg lg:text-xl font-bold tracking-tight text-slate-900 break-words">
             {store.name}
           </h1>
           {store.description && (
@@ -201,17 +166,16 @@ export default function TiendaDetailPage() {
           {statusLabel(store.status)}
         </Badge>
       </div>
-      <p className="-mt-4 mb-6 text-xs text-slate-400 font-mono">
+      <p className="-mt-3 mb-4 lg:mb-6 text-xs text-slate-400 font-mono truncate">
         /{store.slug}
       </p>
 
-      <div className="mb-8 flex border-b border-slate-200">
+      {/* Tabs */}
+      <div className="mb-6 flex border-b border-slate-200 overflow-x-auto scrollbar-thin lg:mb-8">
         <button
           onClick={() => setTab('products')}
-          className={`relative px-5 py-3 text-sm font-semibold transition-colors ${
-            tab === 'products'
-              ? 'text-brand-700'
-              : 'text-slate-500 hover:text-slate-700'
+          className={`relative shrink-0 px-4 py-3 text-sm font-semibold transition-colors lg:px-5 ${
+            tab === 'products' ? 'text-brand-700' : 'text-slate-500 hover:text-slate-700'
           }`}
         >
           Productos
@@ -224,10 +188,8 @@ export default function TiendaDetailPage() {
         </button>
         <button
           onClick={() => setTab('orders')}
-          className={`relative px-5 py-3 text-sm font-semibold transition-colors ${
-            tab === 'orders'
-              ? 'text-brand-700'
-              : 'text-slate-500 hover:text-slate-700'
+          className={`relative shrink-0 px-4 py-3 text-sm font-semibold transition-colors lg:px-5 ${
+            tab === 'orders' ? 'text-brand-700' : 'text-slate-500 hover:text-slate-700'
           }`}
         >
           Órdenes
@@ -242,71 +204,27 @@ export default function TiendaDetailPage() {
 
       {tab === 'products' && (
         <div>
-          <div className="mb-6">
+          <div className="mb-4 lg:mb-6">
             <Button onClick={() => setShowProductForm(!showProductForm)}>
-              {showProductForm ? (
-                <>
-                  <X className="h-4 w-4" /> Cancelar
-                </>
-              ) : (
-                <>
-                  <Plus className="h-4 w-4" /> Nuevo producto
-                </>
-              )}
+              {showProductForm ? <><X className="h-4 w-4" /> Cancelar</> : <><Plus className="h-4 w-4" /> Nuevo producto</>}
             </Button>
           </div>
 
           {showProductForm && (
-            <Card className="mb-8">
+            <Card className="mb-6 lg:mb-8">
               <form onSubmit={handleProductSubmit} className="flex flex-col gap-4">
                 <h2 className="text-sm font-semibold text-slate-700">
                   {editingProductId ? 'Editar producto' : 'Nuevo producto'}
                 </h2>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <Input
-                    placeholder="Nombre del producto"
-                    value={productForm.name}
-                    onChange={(e) =>
-                      setProductForm((p) => ({ ...p, name: e.target.value }))
-                    }
-                    required
-                  />
-                  <Input
-                    placeholder="Descripción"
-                    value={productForm.description}
-                    onChange={(e) =>
-                      setProductForm((p) => ({ ...p, description: e.target.value }))
-                    }
-                  />
-                  <Input
-                    placeholder="Precio (CLP)"
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={productForm.price}
-                    onChange={(e) =>
-                      setProductForm((p) => ({ ...p, price: e.target.value }))
-                    }
-                    required
-                  />
-                  <Input
-                    placeholder="Stock inicial"
-                    type="number"
-                    min="0"
-                    value={productForm.stock}
-                    onChange={(e) =>
-                      setProductForm((p) => ({ ...p, stock: e.target.value }))
-                    }
-                    required
-                  />
+                  <Input placeholder="Nombre del producto" value={productForm.name} onChange={(e) => setProductForm((p) => ({ ...p, name: e.target.value }))} required />
+                  <Input placeholder="Descripción" value={productForm.description} onChange={(e) => setProductForm((p) => ({ ...p, description: e.target.value }))} />
+                  <Input placeholder="Precio (CLP)" type="number" min="0" step="1" value={productForm.price} onChange={(e) => setProductForm((p) => ({ ...p, price: e.target.value }))} required />
+                  <Input placeholder="Stock inicial" type="number" min="0" value={productForm.stock} onChange={(e) => setProductForm((p) => ({ ...p, stock: e.target.value }))} required />
                 </div>
                 <div className="flex justify-end">
                   <Button type="submit" disabled={saving}>
-                    {saving
-                      ? 'Guardando...'
-                      : editingProductId
-                        ? 'Actualizar'
-                        : 'Crear producto'}
+                    {saving ? 'Guardando...' : editingProductId ? 'Actualizar' : 'Crear producto'}
                   </Button>
                 </div>
               </form>
@@ -317,25 +235,14 @@ export default function TiendaDetailPage() {
             <EmptyState
               title="No hay productos todavía"
               description="Crea tu primer producto en esta tienda para empezar a recibir órdenes."
-              action={
-                <Button onClick={() => setShowProductForm(true)}>
-                  <Plus className="h-4 w-4" /> Nuevo producto
-                </Button>
-              }
+              action={<Button onClick={() => setShowProductForm(true)}><Plus className="h-4 w-4" /> Nuevo producto</Button>}
             />
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
               {products.map((p) => (
-                <ProductCard
-                  key={p.id}
-                  product={p}
-                  onEdit={startEditProduct}
-                  onDelete={(id) => {
-                    setDeleteId(id)
-                    setDeleteType('product')
-                  }}
-                  onUpdateStock={handleUpdateStock}
-                  onCreateOrder={handleCreateOrder}
+                <ProductCard key={p.id} product={p} onEdit={startEditProduct}
+                  onDelete={(id) => { setDeleteId(id); setDeleteType('product') }}
+                  onUpdateStock={handleUpdateStock} onCreateOrder={handleCreateOrder}
                 />
               ))}
             </div>
@@ -353,10 +260,7 @@ export default function TiendaDetailPage() {
           ) : (
             <OrdersTable
               orders={orders}
-              onDelete={(id) => {
-                setDeleteId(id)
-                setDeleteType('order')
-              }}
+              onDelete={(id) => { setDeleteId(id); setDeleteType('order') }}
               onUpdateStatus={handleUpdateOrderStatus}
             />
           )}

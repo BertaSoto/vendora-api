@@ -82,17 +82,17 @@ export default function DashboardPage() {
 
   return (
     <div>
-      {/* ─── Hero header ─── */}
-      <div className="mb-8">
-        <div className="flex items-start gap-4">
-          <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600 shadow-sm shadow-brand-500/20">
-            <TrendingUp className="h-6 w-6 text-white" />
+      {/* Hero header */}
+      <div className="mb-6 lg:mb-8">
+        <div className="flex items-start gap-3 lg:gap-4">
+          <div className="hidden sm:flex h-10 w-10 lg:h-12 lg:w-12 shrink-0 items-center justify-center rounded-xl lg:rounded-2xl bg-brand-600 shadow-sm shadow-brand-500/20">
+            <TrendingUp className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
           </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900">
+          <div className="min-w-0">
+            <h1 className="text-lg lg:text-xl font-bold tracking-tight text-slate-900">
               Panel de control
             </h1>
-            <p className="mt-1 max-w-lg text-sm leading-relaxed text-slate-500">
+            <p className="mt-0.5 lg:mt-1 max-w-lg text-xs lg:text-sm leading-relaxed text-slate-500">
               Resumen general de tu negocio. Visualiza tus métricas principales
               y accede rápidamente a las secciones de gestión.
             </p>
@@ -100,16 +100,16 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ─── KPI cards ─── */}
+      {/* KPI cards */}
       {loading ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
           <KpiSkeleton />
           <KpiSkeleton />
           <KpiSkeleton />
           <KpiSkeleton />
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
           <KpiCard
             title="Tiendas"
             value={stores.length}
@@ -134,21 +134,21 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ─── Quick actions ─── */}
+      {/* Quick actions */}
       {!loading && (
-        <div className="mt-8">
-          <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <div className="mt-6 lg:mt-8">
+          <h2 className="mb-3 lg:mb-4 text-[11px] lg:text-xs font-semibold uppercase tracking-wider text-slate-400">
             Accesos rápidos
           </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
             {quickActions.map((action) => (
-              <Card key={action.href} hover className="flex flex-col gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 ring-1 ring-brand-100">
+              <Card key={action.href} hover className="flex flex-col gap-3 lg:gap-4">
+                <div className="flex h-10 w-10 lg:h-11 lg:w-11 items-center justify-center rounded-xl bg-brand-50 ring-1 ring-brand-100">
                   <action.icon className="h-5 w-5 text-brand-600" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-900">{action.title}</h3>
-                  <p className="mt-1 text-sm text-slate-500 leading-relaxed">
+                  <p className="mt-1 text-xs lg:text-sm text-slate-500 leading-relaxed">
                     {action.description}
                   </p>
                 </div>
