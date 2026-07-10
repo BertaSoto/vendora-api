@@ -10,8 +10,8 @@ export function Card({ children, className, hover }: CardProps) {
   return (
     <div
       className={clsx(
-        'rounded-xl border border-slate-200 bg-white p-5 shadow-sm',
-        hover && 'transition-shadow hover:shadow-md',
+        'rounded-2xl border border-slate-200 bg-white p-6 shadow-sm',
+        hover && 'transition-all duration-200 hover:shadow-md hover:border-slate-300',
         className,
       )}
     >

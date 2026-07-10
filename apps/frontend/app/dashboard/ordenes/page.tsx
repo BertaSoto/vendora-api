@@ -72,10 +72,10 @@ export default function OrdenesPage() {
 
   return (
     <div>
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Órdenes</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">Órdenes</h1>
+          <p className="mt-0.5 text-sm text-slate-500">
             {selectedStoreId
               ? `${orders.length} ${orders.length === 1 ? 'orden' : 'órdenes'}`
               : 'Selecciona una tienda para ver sus órdenes'}
@@ -99,8 +99,8 @@ export default function OrdenesPage() {
         <TableSkeleton rows={6} />
       ) : orders.length === 0 ? (
         <EmptyState
-          title="No hay órdenes"
-          description="Crea productos y genera órdenes para empezar."
+          title="No hay órdenes todavía"
+          description="Las órdenes aparecerán aquí cuando los clientes realicen compras en tu tienda."
         />
       ) : (
         <OrdersTable

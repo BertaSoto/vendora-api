@@ -16,32 +16,32 @@ interface OrdersTableProps {
 
 export function OrdersTable({ orders, onDelete, onUpdateStatus }: OrdersTableProps) {
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50/50">
-              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <tr className="border-b border-slate-100 bg-slate-50/80">
+              <th className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Producto
               </th>
-              <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <th className="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Cant.
               </th>
-              <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <th className="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Total
               </th>
-              <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <th className="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Estado
               </th>
-              <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <th className="px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Fecha
               </th>
-              <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <th className="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Acciones
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-50">
             {orders.map((order) => (
               <OrderRow
                 key={order.id}
@@ -96,29 +96,33 @@ function OrderRow({
   }, [menuOpen])
 
   return (
-    <tr className="hover:bg-slate-50/50 transition-colors">
-      <td className="px-5 py-3.5 text-sm font-medium text-slate-900">
-        {order.productName ?? '—'}
+    <tr className="transition-colors hover:bg-slate-50/50">
+      <td className="px-5 py-4 text-sm font-medium text-slate-900">
+        {order.productName ?? (
+          <span className="text-slate-300">—</span>
+        )}
       </td>
-      <td className="px-5 py-3.5 text-center text-sm text-slate-600">
-        x{order.quantity}
+      <td className="px-5 py-4 text-center text-sm text-slate-600">
+        <span className="inline-flex items-center justify-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
+          x{order.quantity}
+        </span>
       </td>
-      <td className="px-5 py-3.5 text-right text-sm font-semibold text-slate-900">
+      <td className="px-5 py-4 text-right text-sm font-semibold text-slate-900 tabular-nums">
         {formatCLP(order.total)}
       </td>
-      <td className="px-5 py-3.5 text-center">
+      <td className="px-5 py-4 text-center">
         <Badge variant={statusBadgeVariant(order.status)}>
           {statusLabel(order.status)}
         </Badge>
       </td>
-      <td className="px-5 py-3.5 text-center text-xs text-slate-400">
+      <td className="px-5 py-4 text-center text-xs text-slate-400">
         {new Date(order.createdAt).toLocaleDateString('es-ES')}
       </td>
-      <td className="px-5 py-3.5 text-right">
+      <td className="px-5 py-4 text-right">
         <button
           ref={triggerRef}
           onClick={() => setMenuOpen(!menuOpen)}
-          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+          className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
         >
           <MoreHorizontal className="h-4 w-4" />
         </button>
@@ -131,9 +135,9 @@ function OrderRow({
               />
               <div
                 style={menuStyle}
-                className="w-44 rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+                className="w-48 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg"
               >
-                <div className="px-3 py-1.5 text-xs font-semibold text-slate-400">
+                <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   Cambiar estado
                 </div>
                 {(['pending', 'confirmed', 'delivered', 'cancelled'] as OrderStatus[]).map(
@@ -144,7 +148,7 @@ function OrderRow({
                         onUpdateStatus(order.id, status)
                         setMenuOpen(false)
                       }}
-                      className={`block w-full px-3 py-1.5 text-left text-sm hover:bg-slate-50 ${
+                      className={`block w-full px-3 py-1.5 text-left text-sm transition-colors hover:bg-slate-50 ${
                         order.status === status
                           ? 'font-semibold text-brand-600'
                           : 'text-slate-600'
@@ -154,18 +158,17 @@ function OrderRow({
                     </button>
                   ),
                 )}
-                <div className="border-t border-slate-100 mt-1 pt-1">
-                  <button
-                    onClick={() => {
-                      onDelete(order.id)
-                      setMenuOpen(false)
-                    }}
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-red-600 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    Eliminar
-                  </button>
-                </div>
+                <div className="mx-2 my-1 border-t border-slate-100" />
+                <button
+                  onClick={() => {
+                    onDelete(order.id)
+                    setMenuOpen(false)
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm text-rose-600 transition-colors hover:bg-rose-50"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Eliminar
+                </button>
               </div>
             </>,
             document.body,

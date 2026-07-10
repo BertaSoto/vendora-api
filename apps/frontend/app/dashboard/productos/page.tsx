@@ -148,10 +148,10 @@ export default function ProductosPage() {
 
   return (
     <div>
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Productos</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">Productos</h1>
+          <p className="mt-0.5 text-sm text-slate-500">
             {selectedStoreId
               ? `${products.length} ${products.length === 1 ? 'producto' : 'productos'}`
               : 'Selecciona una tienda para ver sus productos'}
@@ -164,7 +164,7 @@ export default function ProductosPage() {
             onChange={setSelectedStoreId}
           />
           {selectedStoreId && (
-            <Button onClick={() => setShowForm(!showForm)}>
+            <Button onClick={() => setShowForm(!showForm)} size="lg">
               {showForm ? (
                 <>
                   <X className="h-4 w-4" /> Cancelar
@@ -180,14 +180,14 @@ export default function ProductosPage() {
       </div>
 
       {showForm && (
-        <Card className="mb-6">
+        <Card className="mb-8">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <h2 className="text-sm font-semibold text-slate-700">
               {editingId ? 'Editar producto' : 'Nuevo producto'}
             </h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Input
-                placeholder="Nombre"
+                placeholder="Nombre del producto"
                 value={form.name}
                 onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                 required
@@ -200,7 +200,7 @@ export default function ProductosPage() {
                 }
               />
               <Input
-                placeholder="Precio"
+                placeholder="Precio (CLP)"
                 type="number"
                 min="0"
                 step="1"
@@ -209,7 +209,7 @@ export default function ProductosPage() {
                 required
               />
               <Input
-                placeholder="Stock"
+                placeholder="Stock inicial"
                 type="number"
                 min="0"
                 value={form.stock}
@@ -219,7 +219,7 @@ export default function ProductosPage() {
             </div>
             <div className="flex justify-end">
               <Button type="submit" disabled={saving}>
-                {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
+                {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear producto'}
               </Button>
             </div>
           </form>
@@ -241,10 +241,10 @@ export default function ProductosPage() {
         </div>
       ) : products.length === 0 ? (
         <EmptyState
-          title="No hay productos"
-          description="Crea tu primer producto en esta tienda."
+          title="No hay productos todavía"
+          description="Crea tu primer producto en esta tienda para empezar a recibir órdenes."
           action={
-            <Button onClick={() => setShowForm(true)}>
+            <Button onClick={() => setShowForm(true)} size="lg">
               <Plus className="h-4 w-4" />
               Nuevo producto
             </Button>
